@@ -6,6 +6,10 @@ import Question from './components/Question'
 import TwoSumVisualization from './components/Array/Easy/TwoSum/TwoSumVisualization'
 import BestTimeToBuySellStockVisualization from './components/Array/Easy/BestTimeToBuySellStock/BestTimeToBuySellStockVisualization'
 import ContainsDuplicateVisualization from './components/Array/Easy/ContainsDuplicate/ContainsDuplicateVisualization'
+import FindMaxMinVisualization from './components/Array/Easy/FindMaxMin/FindMaxMinVisualization'
+import ReverseArrayVisualization from './components/Array/Easy/ReverseArray/ReverseArrayVisualization'
+import KthMaxMinVisualization from './components/Array/Easy/KthMaxMin/KthMaxMinVisualization'
+import Sort012Visualization from './components/Array/Easy/Sort012/Sort012Visualization'
 
 // Dynamic Visualization Router
 const VisualizationRouter = () => {
@@ -22,6 +26,22 @@ const VisualizationRouter = () => {
 
   if (questionId === 8) {
     return <ContainsDuplicateVisualization />;
+  }
+
+  if (questionId === 9) {
+    return <FindMaxMinVisualization />;
+  }
+
+  if (questionId === 10) {
+    return <ReverseArrayVisualization />;
+  }
+
+  if (questionId === 11) {
+    return <KthMaxMinVisualization />;
+  }
+
+  if (questionId === 12) {
+    return <Sort012Visualization />;
   }
 
   return <Navigate to="/dashboard/questions" replace />;

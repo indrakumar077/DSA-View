@@ -32,21 +32,21 @@ import { useVisualizationControls } from '../../../../contexts/VisualizationCont
 
 interface Step {
   line: number;
-  i?: number;
+  left?: number;
+  right?: number;
   variables: Record<string, any>;
-  seenSet: number[];
+  array: number[];
   description: string;
-  isDuplicate?: boolean;
-  result?: boolean;
+  isComplete?: boolean;
 }
 
-const ContainsDuplicateVisualization = () => {
+const ReverseArrayVisualization = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const questionId = id ? parseInt(id, 10) : 8;
+  const questionId = id ? parseInt(id, 10) : 10;
   const question = questionsData[questionId];
   const { registerControls, unregisterControls } = useVisualizationControls();
-  const [nums, setNums] = useState([1, 2, 3, 1]);
+  const [nums, setNums] = useState([1, 2, 3, 4, 5]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -58,65 +58,76 @@ const ContainsDuplicateVisualization = () => {
 
   const generateSteps = (nums: number[]): Step[] => {
     const steps: Step[] = [];
-    const seen = new Set<number>();
+    const arr = [...nums];
+    let left = 0;
+    let right = arr.length - 1;
+
+    if (arr.length <= 1) {
+      steps.push({
+        line: 1,
+        variables: { left: 0, right: arr.length - 1 },
+        array: [...arr],
+        description: 'Array has 0 or 1 element. No reversal needed.',
+        isComplete: true,
+      });
+      return steps;
+    }
 
     steps.push({
       line: 1,
-      variables: {},
-      seenSet: [],
-      description: 'Initialize empty set',
+      left,
+      right,
+      variables: { left, right },
+      array: [...arr],
+      description: `Initialize left = ${left}, right = ${right}`,
     });
 
-    for (let i = 0; i < nums.length; i++) {
+    while (left < right) {
       steps.push({
         line: 2,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `Check element at index ${i}: ${nums[i]}`,
+        left,
+        right,
+        variables: { left, right, 'nums[left]': arr[left], 'nums[right]': arr[right] },
+        array: [...arr],
+        description: `Compare: left (${left}) < right (${right}). Swap elements at positions ${left} and ${right}`,
       });
 
-      if (seen.has(nums[i])) {
+      // Swap
+      const temp = arr[left];
+      arr[left] = arr[right];
+      arr[right] = temp;
+
+      steps.push({
+        line: 3,
+        left,
+        right,
+        variables: { left, right, 'nums[left]': arr[left], 'nums[right]': arr[right] },
+        array: [...arr],
+        description: `Swapped: nums[${left}] = ${arr[left]}, nums[${right}] = ${arr[right]}`,
+      });
+
+      left++;
+      right--;
+
+      if (left < right) {
         steps.push({
-          line: 3,
-          i,
-          variables: { i, 'nums[i]': nums[i] },
-          seenSet: Array.from(seen),
-          description: `Duplicate found! ${nums[i]} already exists in set`,
-          isDuplicate: true,
-          result: true,
+          line: 4,
+          left,
+          right,
+          variables: { left, right },
+          array: [...arr],
+          description: `Update pointers: left = ${left}, right = ${right}`,
         });
-        break;
       }
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `${nums[i]} not in set, adding to set`,
-      });
-
-      seen.add(nums[i]);
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `Set updated: {${Array.from(seen).join(', ')}}`,
-      });
     }
 
-    if (!steps[steps.length - 1].isDuplicate) {
-      steps.push({
-        line: 5,
-        variables: {},
-        seenSet: Array.from(seen),
-        description: 'No duplicates found. All elements are distinct.',
-        result: false,
-      });
-    }
+    steps.push({
+      line: 5,
+      variables: {},
+      array: [...arr],
+      description: 'Reversal complete! Array is now reversed.',
+      isComplete: true,
+    });
 
     return steps;
   };
@@ -222,29 +233,19 @@ const ContainsDuplicateVisualization = () => {
 
   const currentStepData = steps[currentStep] || steps[0];
 
-  const code = question?.codes?.[language as keyof typeof question.codes] || question?.codes?.Python || '';
-  const codeLines = useMemo(() => {
-    return code.split('\n');
-  }, [code, language]);
-
-  const getHighlightedLine = (stepLine: number, lang: string): number => {
-    const currentCode = question?.codes?.[lang as keyof typeof question.codes] || question?.codes?.Python || '';
-    if (!currentCode) return -1;
-    const lines = currentCode.split('\n');
+  const getLineNumberForStep = (code: string, stepLine: number, lang: string): number => {
+    const lines = code.split('\n');
     
     if (stepLine === 1) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\s*=\s*set\(\)/.test(line)) {
+        if (lang === 'Python' && /left\s*=\s*0/.test(line) && /right\s*=/.test(line)) {
           return i + 1;
         }
-        if (lang === 'Java' && /Set<.*>.*seen\s*=\s*new HashSet/.test(line)) {
+        if ((lang === 'Java' || lang === 'C++') && /int\s+left\s*=\s*0/.test(line)) {
           return i + 1;
         }
-        if (lang === 'C++' && /unordered_set<.*>.*seen/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /const\s+seen\s*=\s*new Set\(\)/.test(line)) {
+        if (lang === 'JavaScript' && /let\s+left\s*=\s*0/.test(line)) {
           return i + 1;
         }
       }
@@ -253,16 +254,7 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 2) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /for\s+num\s+in\s+nums/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /for\s*\(int\s+num\s*:\s*nums\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /for\s*\(int\s+num\s*:\s*nums\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /for\s*\(const\s+num\s+of\s+nums\)/.test(line)) {
+        if (/while\s*\(left\s*<\s*right\)/.test(line) || /while\s+left\s*<\s*right/.test(line)) {
           return i + 1;
         }
       }
@@ -271,16 +263,7 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 3) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /if\s+num\s+in\s+seen/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /if\s*\(seen\.contains\(num\)\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /if\s*\(seen\.find\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /if\s*\(seen\.has\(num\)\)/.test(line)) {
+        if (/swap|\[nums\[left\],\s*nums\[right\]\]|temp\s*=/.test(line)) {
           return i + 1;
         }
       }
@@ -289,43 +272,35 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 4) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\.add\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /seen\.add\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /seen\.insert\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /seen\.add\(num\)/.test(line)) {
+        if (/left\+\+|left\s*\+\s*=\s*1/.test(line)) {
           return i + 1;
         }
       }
     }
     
     if (stepLine === 5) {
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (lang === 'Python' && /return\s+False/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /return\s+false/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /return\s+false/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /return\s+false/.test(line)) {
-          return i + 1;
-        }
-      }
+      return lines.length;
     }
     
     return -1;
   };
 
+  const codeLines = useMemo(() => {
+    if (!question?.codes) return [];
+    const code = question.codes[language as keyof typeof question.codes] || question.codes.Python;
+    return code.split('\n');
+  }, [question?.codes, language]);
+
+  const getHighlightedLine = (stepLine: number, lang: string): number => {
+    if (!question?.codes) return -1;
+    const code = question.codes[lang as keyof typeof question.codes] || question.codes.Python;
+    return getLineNumberForStep(code, stepLine, lang);
+  };
+
   const highlightedLine = getHighlightedLine(currentStepData.line, language);
+
+  // Get current array state from the current step
+  const currentArray = currentStepData.array || nums;
 
   if (!steps || steps.length === 0 || !currentStepData) {
     return (
@@ -423,7 +398,7 @@ const ContainsDuplicateVisualization = () => {
               color: themeColors.white,
             }}
           >
-            Contains Duplicate
+            Reverse Array
           </Typography>
           <Tabs
             value={activeTab}
@@ -551,103 +526,26 @@ const ContainsDuplicateVisualization = () => {
             <>
               <Box
                 sx={{
-                  flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'flex-start',
                   gap: 4,
                   p: 4,
-                  position: 'relative',
+                  minHeight: '50vh',
                 }}
               >
-                {currentStepData.isDuplicate && currentStepData.result === true && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        backgroundColor: '#ef4444',
-                        color: themeColors.white,
-                        px: 4,
-                        py: 2,
-                        borderRadius: 2,
-                        fontSize: '1.125rem',
-                        fontWeight: 700,
-                        boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
-                        textAlign: 'center',
-                        animation: 'pulse 0.8s ease infinite',
-                        '@keyframes pulse': {
-                          '0%, 100%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                        },
-                      }}
-                    >
-                      🎯 Duplicate Found! Return true
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        gap: 3,
-                        backgroundColor: themeColors.inputBgDark,
-                        px: 3,
-                        py: 2,
-                        borderRadius: 2,
-                        border: `1px solid ${themeColors.borderLight}`,
-                      }}
-                    >
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Time Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          width: '1px',
-                          backgroundColor: themeColors.borderLight,
-                        }}
-                      />
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Space Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-
-                {currentStepData.result === false && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                {currentStepData.isComplete && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                      alignItems: 'center',
+                      width: '100%',
+                      mb: 2,
+                    }}
+                  >
                     <Box
                       sx={{
                         backgroundColor: '#10b981',
@@ -659,9 +557,16 @@ const ContainsDuplicateVisualization = () => {
                         fontWeight: 700,
                         boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                         textAlign: 'center',
+                        animation: 'pulse 0.8s ease infinite',
+                        width: '100%',
+                        maxWidth: '500px',
+                        '@keyframes pulse': {
+                          '0%, 100%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                        },
                       }}
                     >
-                      ✅ No Duplicates! Return false
+                      ✅ Array Reversed Successfully!
                     </Box>
                     <Box
                       sx={{
@@ -672,6 +577,9 @@ const ContainsDuplicateVisualization = () => {
                         py: 2,
                         borderRadius: 2,
                         border: `1px solid ${themeColors.borderLight}`,
+                        width: '100%',
+                        maxWidth: '500px',
+                        justifyContent: 'center',
                       }}
                     >
                       <Box sx={{ textAlign: 'center' }}>
@@ -719,14 +627,14 @@ const ContainsDuplicateVisualization = () => {
                             fontFamily: 'monospace',
                           }}
                         >
-                          O(n)
+                          O(1)
                         </Typography>
                       </Box>
                     </Box>
                   </Box>
                 )}
 
-                <Box sx={{ textAlign: 'center', width: '100%', maxWidth: '800px' }}>
+                <Box sx={{ textAlign: 'center' }}>
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
@@ -749,12 +657,11 @@ const ContainsDuplicateVisualization = () => {
                       nums
                     </Box>
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {nums.map((num, idx) => {
-                      const isCurrent = currentStepData.i === idx;
-                      const isDuplicate = currentStepData.isDuplicate && isCurrent;
-                      const inSet = currentStepData.seenSet.includes(num);
-                      const isSolutionIndex = currentStepData.isDuplicate && isCurrent;
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    {currentArray.map((num, idx) => {
+                      const isLeft = currentStepData.left === idx;
+                      const isRight = currentStepData.right === idx;
+                      const isSwapping = currentStepData.line === 3 && (isLeft || isRight);
 
                       return (
                         <Box
@@ -773,21 +680,16 @@ const ContainsDuplicateVisualization = () => {
                               alignItems: 'center',
                               justifyContent: 'center',
                               borderRadius: 1.5,
-                              border: isSolutionIndex
-                                ? '3px solid #ef4444'
-                                : isCurrent
-                                ? `3px solid ${themeColors.primary}`
-                                : inSet
-                                ? `2px solid #10b981`
+                              border: isSwapping
+                                ? '3px solid #10b981'
+                                : isLeft || isRight
+                                ? `2px solid ${themeColors.primary}`
                                 : `1px solid ${themeColors.borderLight}`,
-                              backgroundColor: isSolutionIndex
-                                ? '#ef444433'
-                                : isCurrent
-                                ? `${themeColors.primary}33`
-                                : inSet
-                                ? '#10b9811a'
+                              backgroundColor: isSwapping
+                                ? '#10b98133'
+                                : isLeft || isRight
+                                ? `${themeColors.primary}1a`
                                 : 'transparent',
-                              opacity: isCurrent || inSet || isSolutionIndex ? 1 : 0.3,
                               transition: 'all 0.3s ease',
                             }}
                           >
@@ -810,16 +712,28 @@ const ContainsDuplicateVisualization = () => {
                           >
                             {idx}
                           </Typography>
-                          {isCurrent && (
+                          {isLeft && (
                             <Typography
                               sx={{
                                 mt: 1,
                                 fontSize: '0.75rem',
                                 fontWeight: 700,
-                                color: isSolutionIndex ? '#ef4444' : themeColors.primary,
+                                color: themeColors.primary,
                               }}
                             >
-                              i
+                              left
+                            </Typography>
+                          )}
+                          {isRight && (
+                            <Typography
+                              sx={{
+                                mt: 1,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: themeColors.primary,
+                              }}
+                            >
+                              right
                             </Typography>
                           )}
                         </Box>
@@ -842,14 +756,10 @@ const ContainsDuplicateVisualization = () => {
                     mb: 2,
                     p: 1.5,
                     borderRadius: 1,
-                    backgroundColor: currentStepData.isDuplicate 
-                      ? '#ef444433' 
-                      : currentStepData.result === false
+                    backgroundColor: currentStepData.isComplete
                       ? '#10b98133'
                       : themeColors.backgroundDark,
-                    borderLeft: currentStepData.isDuplicate 
-                      ? '3px solid #ef4444' 
-                      : currentStepData.result === false
+                    borderLeft: currentStepData.isComplete
                       ? '3px solid #10b981'
                       : `3px solid ${themeColors.primary}`,
                   }}
@@ -857,12 +767,8 @@ const ContainsDuplicateVisualization = () => {
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
-                      color: currentStepData.isDuplicate 
-                        ? '#ef4444' 
-                        : currentStepData.result === false
-                        ? '#10b981'
-                        : themeColors.white,
-                      fontWeight: currentStepData.isDuplicate || currentStepData.result !== undefined ? 700 : 500,
+                      color: currentStepData.isComplete ? '#10b981' : themeColors.white,
+                      fontWeight: currentStepData.isComplete ? 700 : 500,
                     }}
                   >
                     {currentStepData.description}
@@ -881,88 +787,6 @@ const ContainsDuplicateVisualization = () => {
                 </Typography>
                 <Box
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', md: '1fr' },
-                    gap: 2,
-                  }}
-                >
-                  <Box>
-                    <Box
-                      sx={{
-                        backgroundColor: themeColors.backgroundDark,
-                        p: 1.5,
-                        borderRadius: 1,
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        minHeight: 60,
-                        maxHeight: 200,
-                        overflow: 'auto',
-                      }}
-                    >
-                      {Object.keys(currentStepData.variables).length > 0 ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 2,
-                            alignItems: 'center',
-                          }}
-                        >
-                          {Object.entries(currentStepData.variables).map(([key, value]) => (
-                            <Box
-                              key={key}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                backgroundColor: `${themeColors.primary}1a`,
-                                padding: '4px 12px',
-                                borderRadius: 1,
-                                border: `1px solid ${themeColors.primary}33`,
-                              }}
-                            >
-                              <Typography sx={{ color: themeColors.textSecondary }}>
-                                {key}:
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  color: themeColors.white,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {String(value)}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                      ) : (
-                        <Typography
-                          sx={{
-                            color: themeColors.textSecondary,
-                            fontSize: '0.75rem',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          No variables yet
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Typography
-                  sx={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: themeColors.white,
-                    mb: 1.5,
-                    mt: 2,
-                  }}
-                >
-                  Hash Set (seen)
-                </Typography>
-                <Box
-                  sx={{
                     backgroundColor: themeColors.backgroundDark,
                     p: 1.5,
                     borderRadius: 1,
@@ -973,32 +797,38 @@ const ContainsDuplicateVisualization = () => {
                     overflow: 'auto',
                   }}
                 >
-                  {currentStepData.seenSet.length > 0 ? (
+                  {Object.keys(currentStepData.variables).length > 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
                         flexWrap: 'wrap',
-                        gap: 1,
+                        gap: 2,
                         alignItems: 'center',
                       }}
                     >
-                      {currentStepData.seenSet.map((num) => (
+                      {Object.entries(currentStepData.variables).map(([key, value]) => (
                         <Box
-                          key={num}
+                          key={key}
                           sx={{
-                            backgroundColor: '#10b9811a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            backgroundColor: `${themeColors.primary}1a`,
                             padding: '4px 12px',
                             borderRadius: 1,
-                            border: '1px solid #10b98133',
+                            border: `1px solid ${themeColors.primary}33`,
                           }}
                         >
+                          <Typography sx={{ color: themeColors.textSecondary }}>
+                            {key}:
+                          </Typography>
                           <Typography
                             sx={{
-                              color: '#10b981',
+                              color: themeColors.white,
                               fontWeight: 600,
                             }}
                           >
-                            {num}
+                            {String(value)}
                           </Typography>
                         </Box>
                       ))}
@@ -1011,7 +841,7 @@ const ContainsDuplicateVisualization = () => {
                         fontStyle: 'italic',
                       }}
                     >
-                      Set is empty
+                      No variables yet
                     </Typography>
                   )}
                 </Box>
@@ -1025,107 +855,187 @@ const ContainsDuplicateVisualization = () => {
                 p: 4,
               }}
             >
-              {question?.explanation && (
+              {question?.explanation ? (
                 <>
-                  <Typography
-                    sx={{
-                      fontSize: '1.5rem',
-                      fontWeight: 700,
-                      color: themeColors.white,
-                      mb: 3,
-                    }}
-                  >
-                    Approach
-                  </Typography>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        color: themeColors.white,
+                        mb: 2,
+                      }}
+                    >
+                      Approach
+                    </Typography>
+                    <Paper
+                      sx={{
+                        backgroundColor: themeColors.inputBgDark,
+                        p: 3,
+                        borderLeft: `4px solid ${themeColors.primary}`,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: '1rem',
+                          color: themeColors.textSecondary,
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        {question.explanation.approach}
+                      </Typography>
+                    </Paper>
+                  </Box>
+
+                  <Box sx={{ mb: 4 }}>
+                    <Typography
+                      sx={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        color: themeColors.white,
+                        mb: 2,
+                      }}
+                    >
+                      Step-by-Step Solution
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {question.explanation.steps.map((step, index) => (
+                        <Paper
+                          key={index}
+                          sx={{
+                            backgroundColor: themeColors.inputBgDark,
+                            p: 2.5,
+                            borderLeft: `4px solid ${themeColors.primary}`,
+                            display: 'flex',
+                            gap: 2,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              minWidth: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              backgroundColor: themeColors.primary,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                color: themeColors.textPrimary,
+                              }}
+                            >
+                              {index + 1}
+                            </Typography>
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontSize: '0.9375rem',
+                              color: themeColors.textSecondary,
+                              lineHeight: 1.7,
+                              flex: 1,
+                            }}
+                          >
+                            {step}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        color: themeColors.white,
+                        mb: 2,
+                      }}
+                    >
+                      Complexity Analysis
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Paper
+                        sx={{
+                          flex: 1,
+                          backgroundColor: themeColors.inputBgDark,
+                          p: 3,
+                          borderLeft: `4px solid ${themeColors.primary}`,
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            color: themeColors.textSecondary,
+                            mb: 1,
+                          }}
+                        >
+                          Time Complexity
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '1.125rem',
+                            fontWeight: 700,
+                            color: themeColors.primary,
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {question.explanation.timeComplexity}
+                        </Typography>
+                      </Paper>
+                      <Paper
+                        sx={{
+                          flex: 1,
+                          backgroundColor: themeColors.inputBgDark,
+                          p: 3,
+                          borderLeft: `4px solid ${themeColors.primary}`,
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            color: themeColors.textSecondary,
+                            mb: 1,
+                          }}
+                        >
+                          Space Complexity
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '1.125rem',
+                            fontWeight: 700,
+                            color: themeColors.primary,
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {question.explanation.spaceComplexity}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  </Box>
+                </>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '50vh',
+                  }}
+                >
                   <Typography
                     sx={{
                       fontSize: '1rem',
                       color: themeColors.textSecondary,
-                      mb: 4,
-                      lineHeight: 1.8,
                     }}
                   >
-                    {question.explanation.approach}
+                    Explanation not available for this problem.
                   </Typography>
-
-                  <Typography
-                    sx={{
-                      fontSize: '1.5rem',
-                      fontWeight: 700,
-                      color: themeColors.white,
-                      mb: 3,
-                    }}
-                  >
-                    Steps
-                  </Typography>
-                  <Box component="ol" sx={{ pl: 3, mb: 4 }}>
-                    {question.explanation.steps.map((step, idx) => (
-                      <Typography
-                        key={idx}
-                        component="li"
-                        sx={{
-                          fontSize: '1rem',
-                          color: themeColors.textSecondary,
-                          mb: 2,
-                          lineHeight: 1.8,
-                        }}
-                      >
-                        {step}
-                      </Typography>
-                    ))}
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                      gap: 3,
-                    }}
-                  >
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography
-                        sx={{
-                          fontSize: '0.75rem',
-                          color: themeColors.textSecondary,
-                          mb: 0.5,
-                        }}
-                      >
-                        Time Complexity
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          color: themeColors.primary,
-                          fontFamily: 'monospace',
-                        }}
-                      >
-                        {question.explanation.timeComplexity}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography
-                        sx={{
-                          fontSize: '0.75rem',
-                          color: themeColors.textSecondary,
-                          mb: 0.5,
-                        }}
-                      >
-                        Space Complexity
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          color: themeColors.primary,
-                          fontFamily: 'monospace',
-                        }}
-                      >
-                        {question.explanation.spaceComplexity}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </>
+                </Box>
               )}
             </Box>
           )}
@@ -1146,6 +1056,7 @@ const ContainsDuplicateVisualization = () => {
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 borderBottom: `1px solid ${themeColors.borderLight}`,
                 px: 2,
               }}
@@ -1174,6 +1085,7 @@ const ContainsDuplicateVisualization = () => {
                 </Select>
               </FormControl>
             </Box>
+
             <Box
               sx={{
                 flex: 1,
@@ -1251,6 +1163,7 @@ const ContainsDuplicateVisualization = () => {
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 borderBottom: `1px solid ${themeColors.borderLight}`,
                 px: 2,
               }}
@@ -1279,6 +1192,7 @@ const ContainsDuplicateVisualization = () => {
                 </Select>
               </FormControl>
             </Box>
+
             <Box
               sx={{
                 flex: 1,
@@ -1335,39 +1249,54 @@ const ContainsDuplicateVisualization = () => {
         )}
       </Box>
 
-      <Dialog open={showCustomInput} onClose={() => setShowCustomInput(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: themeColors.white, backgroundColor: themeColors.inputBgDark }}>
-          Custom Input
-        </DialogTitle>
-        <DialogContent sx={{ backgroundColor: themeColors.inputBgDark }}>
+      <Dialog
+        open={showCustomInput}
+        onClose={() => setShowCustomInput(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: themeColors.inputBgDark,
+            color: themeColors.white,
+            minWidth: 400,
+          },
+        }}
+      >
+        <DialogTitle>Test with Custom Input</DialogTitle>
+        <DialogContent>
           <TextField
-            fullWidth
             label="Array (comma-separated)"
             value={customNums}
             onChange={(e) => setCustomNums(e.target.value)}
-            placeholder="1,2,3,1"
+            fullWidth
+            margin="normal"
+            placeholder="1, 2, 3, 4, 5"
             sx={{
-              mt: 2,
               '& .MuiOutlinedInput-root': {
                 color: themeColors.white,
                 '& fieldset': {
                   borderColor: themeColors.borderLight,
                 },
-                '&:hover fieldset': {
-                  borderColor: themeColors.primary,
-                },
               },
-              '& .MuiInputLabel-root': {
+              '& label': {
                 color: themeColors.textSecondary,
               },
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ backgroundColor: themeColors.inputBgDark }}>
-          <Button onClick={() => setShowCustomInput(false)} sx={{ color: themeColors.textSecondary }}>
+        <DialogActions>
+          <Button
+            onClick={() => setShowCustomInput(false)}
+            sx={{ color: themeColors.white }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleCustomInput} sx={{ color: themeColors.primary }}>
+          <Button
+            onClick={handleCustomInput}
+            variant="contained"
+            sx={{
+              backgroundColor: themeColors.primary,
+              color: themeColors.textPrimary,
+            }}
+          >
             Apply
           </Button>
         </DialogActions>
@@ -1376,4 +1305,5 @@ const ContainsDuplicateVisualization = () => {
   );
 };
 
-export default ContainsDuplicateVisualization;
+export default ReverseArrayVisualization;
+

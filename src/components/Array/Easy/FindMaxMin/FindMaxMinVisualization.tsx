@@ -15,7 +15,6 @@ import {
   TextField,
   Tabs,
   Tab,
-  Paper,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -34,19 +33,20 @@ interface Step {
   line: number;
   i?: number;
   variables: Record<string, any>;
-  seenSet: number[];
+  maxVal: number | null;
+  minVal: number | null;
   description: string;
-  isDuplicate?: boolean;
-  result?: boolean;
+  isComplete?: boolean;
+  result?: { max: number; min: number };
 }
 
-const ContainsDuplicateVisualization = () => {
+const FindMaxMinVisualization = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const questionId = id ? parseInt(id, 10) : 8;
+  const questionId = id ? parseInt(id, 10) : 9;
   const question = questionsData[questionId];
   const { registerControls, unregisterControls } = useVisualizationControls();
-  const [nums, setNums] = useState([1, 2, 3, 1]);
+  const [nums, setNums] = useState([3, 5, 1, 8, 2, 9, 4]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -58,65 +58,85 @@ const ContainsDuplicateVisualization = () => {
 
   const generateSteps = (nums: number[]): Step[] => {
     const steps: Step[] = [];
-    const seen = new Set<number>();
+    
+    if (nums.length === 0) {
+      steps.push({
+        line: 1,
+        variables: {},
+        maxVal: null,
+        minVal: null,
+        description: 'Array is empty. Cannot find max/min.',
+        isComplete: true,
+      });
+      return steps;
+    }
+
+    let maxVal = nums[0];
+    let minVal = nums[0];
 
     steps.push({
-      line: 1,
-      variables: {},
-      seenSet: [],
-      description: 'Initialize empty set',
+      line: 2,
+      variables: { maxVal: nums[0], minVal: nums[0] },
+      maxVal: nums[0],
+      minVal: nums[0],
+      description: `Initialize maxVal and minVal with first element: ${nums[0]}`,
     });
 
-    for (let i = 0; i < nums.length; i++) {
+    for (let i = 1; i < nums.length; i++) {
       steps.push({
-        line: 2,
+        line: 3,
         i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
+        variables: { i, 'nums[i]': nums[i], maxVal, minVal },
+        maxVal,
+        minVal,
         description: `Check element at index ${i}: ${nums[i]}`,
       });
 
-      if (seen.has(nums[i])) {
+      if (nums[i] > maxVal) {
+        maxVal = nums[i];
+        steps.push({
+          line: 4,
+          i,
+          variables: { i, 'nums[i]': nums[i], maxVal, minVal },
+          maxVal,
+          minVal,
+          description: `${nums[i]} > maxVal (${maxVal === nums[0] ? nums[0] : 'previous max'}), update maxVal = ${nums[i]}`,
+        });
+      }
+
+      if (nums[i] < minVal) {
+        minVal = nums[i];
+        steps.push({
+          line: 5,
+          i,
+          variables: { i, 'nums[i]': nums[i], maxVal, minVal },
+          maxVal,
+          minVal,
+          description: `${nums[i]} < minVal (${minVal === nums[0] ? nums[0] : 'previous min'}), update minVal = ${nums[i]}`,
+        });
+      }
+
+      if (nums[i] <= maxVal && nums[i] >= minVal) {
         steps.push({
           line: 3,
           i,
-          variables: { i, 'nums[i]': nums[i] },
-          seenSet: Array.from(seen),
-          description: `Duplicate found! ${nums[i]} already exists in set`,
-          isDuplicate: true,
-          result: true,
+          variables: { i, 'nums[i]': nums[i], maxVal, minVal },
+          maxVal,
+          minVal,
+          description: `${nums[i]} is between minVal and maxVal, no update needed`,
         });
-        break;
       }
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `${nums[i]} not in set, adding to set`,
-      });
-
-      seen.add(nums[i]);
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `Set updated: {${Array.from(seen).join(', ')}}`,
-      });
     }
 
-    if (!steps[steps.length - 1].isDuplicate) {
-      steps.push({
-        line: 5,
-        variables: {},
-        seenSet: Array.from(seen),
-        description: 'No duplicates found. All elements are distinct.',
-        result: false,
-      });
-    }
+    steps.push({
+      line: 6,
+      variables: { maxVal, minVal },
+      maxVal,
+      minVal,
+      description: `Final result: Maximum = ${maxVal}, Minimum = ${minVal}`,
+      isComplete: true,
+      result: { max: maxVal, min: minVal },
+    });
 
     return steps;
   };
@@ -235,22 +255,40 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 1) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\s*=\s*set\(\)/.test(line)) {
+        if (lang === 'Python' && /if\s+not\s+nums/.test(line)) {
           return i + 1;
         }
-        if (lang === 'Java' && /Set<.*>.*seen\s*=\s*new HashSet/.test(line)) {
+        if (lang === 'Java' && /if\s*\(nums\.length\s*==\s*0\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'C++' && /unordered_set<.*>.*seen/.test(line)) {
+        if (lang === 'C++' && /if\s*\(nums\.empty\(\)\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'JavaScript' && /const\s+seen\s*=\s*new Set\(\)/.test(line)) {
+        if (lang === 'JavaScript' && /if\s*\(nums\.length\s*===\s*0\)/.test(line)) {
           return i + 1;
         }
       }
     }
     
     if (stepLine === 2) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === 'Python' && /maxVal\s*=\s*nums\[0\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'Java' && /int\s+maxVal\s*=\s*nums\[0\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'C++' && /int\s+maxVal\s*=\s*nums\[0\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'JavaScript' && /let\s+maxVal\s*=\s*nums\[0\]/.test(line)) {
+          return i + 1;
+        }
+      }
+    }
+    
+    if (stepLine === 3) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (lang === 'Python' && /for\s+num\s+in\s+nums/.test(line)) {
@@ -262,25 +300,7 @@ const ContainsDuplicateVisualization = () => {
         if (lang === 'C++' && /for\s*\(int\s+num\s*:\s*nums\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'JavaScript' && /for\s*\(const\s+num\s+of\s+nums\)/.test(line)) {
-          return i + 1;
-        }
-      }
-    }
-    
-    if (stepLine === 3) {
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (lang === 'Python' && /if\s+num\s+in\s+seen/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /if\s*\(seen\.contains\(num\)\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /if\s*\(seen\.find\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /if\s*\(seen\.has\(num\)\)/.test(line)) {
+        if (lang === 'JavaScript' && /for\s*\(let\s+num\s+of\s+nums\)/.test(line)) {
           return i + 1;
         }
       }
@@ -289,16 +309,16 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 4) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\.add\(num\)/.test(line)) {
+        if (lang === 'Python' && /if\s+num\s+>\s+maxVal/.test(line)) {
           return i + 1;
         }
-        if (lang === 'Java' && /seen\.add\(num\)/.test(line)) {
+        if (lang === 'Java' && /if\s*\(num\s+>\s+maxVal\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'C++' && /seen\.insert\(num\)/.test(line)) {
+        if (lang === 'C++' && /if\s*\(num\s+>\s+maxVal\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'JavaScript' && /seen\.add\(num\)/.test(line)) {
+        if (lang === 'JavaScript' && /if\s*\(num\s+>\s+maxVal\)/.test(line)) {
           return i + 1;
         }
       }
@@ -307,16 +327,34 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 5) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /return\s+False/.test(line)) {
+        if (lang === 'Python' && /if\s+num\s+<\s+minVal/.test(line)) {
           return i + 1;
         }
-        if (lang === 'Java' && /return\s+false/.test(line)) {
+        if (lang === 'Java' && /if\s*\(num\s+<\s+minVal\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'C++' && /return\s+false/.test(line)) {
+        if (lang === 'C++' && /if\s*\(num\s+<\s+minVal\)/.test(line)) {
           return i + 1;
         }
-        if (lang === 'JavaScript' && /return\s+false/.test(line)) {
+        if (lang === 'JavaScript' && /if\s*\(num\s+<\s+minVal\)/.test(line)) {
+          return i + 1;
+        }
+      }
+    }
+    
+    if (stepLine === 6) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === 'Python' && /return\s+maxVal/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'Java' && /return\s+new\s+int\[\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'C++' && /return\s+\{maxVal/.test(line)) {
+          return i + 1;
+        }
+        if (lang === 'JavaScript' && /return\s+\[maxVal/.test(line)) {
           return i + 1;
         }
       }
@@ -423,7 +461,7 @@ const ContainsDuplicateVisualization = () => {
               color: themeColors.white,
             }}
           >
-            Contains Duplicate
+            Find Maximum and Minimum
           </Typography>
           <Tabs
             value={activeTab}
@@ -561,92 +599,7 @@ const ContainsDuplicateVisualization = () => {
                   position: 'relative',
                 }}
               >
-                {currentStepData.isDuplicate && currentStepData.result === true && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        backgroundColor: '#ef4444',
-                        color: themeColors.white,
-                        px: 4,
-                        py: 2,
-                        borderRadius: 2,
-                        fontSize: '1.125rem',
-                        fontWeight: 700,
-                        boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
-                        textAlign: 'center',
-                        animation: 'pulse 0.8s ease infinite',
-                        '@keyframes pulse': {
-                          '0%, 100%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                        },
-                      }}
-                    >
-                      🎯 Duplicate Found! Return true
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        gap: 3,
-                        backgroundColor: themeColors.inputBgDark,
-                        px: 3,
-                        py: 2,
-                        borderRadius: 2,
-                        border: `1px solid ${themeColors.borderLight}`,
-                      }}
-                    >
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Time Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          width: '1px',
-                          backgroundColor: themeColors.borderLight,
-                        }}
-                      />
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Space Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-
-                {currentStepData.result === false && (
+                {currentStepData.isComplete && currentStepData.result && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
                     <Box
                       sx={{
@@ -659,9 +612,14 @@ const ContainsDuplicateVisualization = () => {
                         fontWeight: 700,
                         boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                         textAlign: 'center',
+                        animation: 'pulse 0.8s ease infinite',
+                        '@keyframes pulse': {
+                          '0%, 100%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                        },
                       }}
                     >
-                      ✅ No Duplicates! Return false
+                      ✅ Result: Maximum = {currentStepData.result.max}, Minimum = {currentStepData.result.min}
                     </Box>
                     <Box
                       sx={{
@@ -719,7 +677,7 @@ const ContainsDuplicateVisualization = () => {
                             fontFamily: 'monospace',
                           }}
                         >
-                          O(n)
+                          O(1)
                         </Typography>
                       </Box>
                     </Box>
@@ -752,9 +710,10 @@ const ContainsDuplicateVisualization = () => {
                   <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                     {nums.map((num, idx) => {
                       const isCurrent = currentStepData.i === idx;
-                      const isDuplicate = currentStepData.isDuplicate && isCurrent;
-                      const inSet = currentStepData.seenSet.includes(num);
-                      const isSolutionIndex = currentStepData.isDuplicate && isCurrent;
+                      const isMax = currentStepData.maxVal !== null && num === currentStepData.maxVal && currentStepData.isComplete;
+                      const isMin = currentStepData.minVal !== null && num === currentStepData.minVal && currentStepData.isComplete;
+                      const isMaxCandidate = currentStepData.maxVal !== null && num === currentStepData.maxVal && !currentStepData.isComplete;
+                      const isMinCandidate = currentStepData.minVal !== null && num === currentStepData.minVal && !currentStepData.isComplete;
 
                       return (
                         <Box
@@ -773,21 +732,25 @@ const ContainsDuplicateVisualization = () => {
                               alignItems: 'center',
                               justifyContent: 'center',
                               borderRadius: 1.5,
-                              border: isSolutionIndex
-                                ? '3px solid #ef4444'
+                              border: isMax
+                                ? '3px solid #10b981'
+                                : isMin
+                                ? '3px solid #3b82f6'
                                 : isCurrent
                                 ? `3px solid ${themeColors.primary}`
-                                : inSet
-                                ? `2px solid #10b981`
+                                : isMaxCandidate || isMinCandidate
+                                ? `2px solid ${themeColors.primary}`
                                 : `1px solid ${themeColors.borderLight}`,
-                              backgroundColor: isSolutionIndex
-                                ? '#ef444433'
+                              backgroundColor: isMax
+                                ? '#10b98133'
+                                : isMin
+                                ? '#3b82f633'
                                 : isCurrent
                                 ? `${themeColors.primary}33`
-                                : inSet
-                                ? '#10b9811a'
+                                : isMaxCandidate || isMinCandidate
+                                ? `${themeColors.primary}1a`
                                 : 'transparent',
-                              opacity: isCurrent || inSet || isSolutionIndex ? 1 : 0.3,
+                              opacity: isCurrent || isMax || isMin || isMaxCandidate || isMinCandidate ? 1 : 0.3,
                               transition: 'all 0.3s ease',
                             }}
                           >
@@ -816,10 +779,34 @@ const ContainsDuplicateVisualization = () => {
                                 mt: 1,
                                 fontSize: '0.75rem',
                                 fontWeight: 700,
-                                color: isSolutionIndex ? '#ef4444' : themeColors.primary,
+                                color: themeColors.primary,
                               }}
                             >
                               i
+                            </Typography>
+                          )}
+                          {isMax && (
+                            <Typography
+                              sx={{
+                                mt: 0.5,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: '#10b981',
+                              }}
+                            >
+                              MAX
+                            </Typography>
+                          )}
+                          {isMin && (
+                            <Typography
+                              sx={{
+                                mt: 0.5,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: '#3b82f6',
+                              }}
+                            >
+                              MIN
                             </Typography>
                           )}
                         </Box>
@@ -842,14 +829,10 @@ const ContainsDuplicateVisualization = () => {
                     mb: 2,
                     p: 1.5,
                     borderRadius: 1,
-                    backgroundColor: currentStepData.isDuplicate 
-                      ? '#ef444433' 
-                      : currentStepData.result === false
+                    backgroundColor: currentStepData.isComplete
                       ? '#10b98133'
                       : themeColors.backgroundDark,
-                    borderLeft: currentStepData.isDuplicate 
-                      ? '3px solid #ef4444' 
-                      : currentStepData.result === false
+                    borderLeft: currentStepData.isComplete
                       ? '3px solid #10b981'
                       : `3px solid ${themeColors.primary}`,
                   }}
@@ -857,12 +840,8 @@ const ContainsDuplicateVisualization = () => {
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
-                      color: currentStepData.isDuplicate 
-                        ? '#ef4444' 
-                        : currentStepData.result === false
-                        ? '#10b981'
-                        : themeColors.white,
-                      fontWeight: currentStepData.isDuplicate || currentStepData.result !== undefined ? 700 : 500,
+                      color: currentStepData.isComplete ? '#10b981' : themeColors.white,
+                      fontWeight: currentStepData.isComplete ? 700 : 500,
                     }}
                   >
                     {currentStepData.description}
@@ -959,61 +938,77 @@ const ContainsDuplicateVisualization = () => {
                     mt: 2,
                   }}
                 >
-                  Hash Set (seen)
+                  Current Values
                 </Typography>
                 <Box
                   sx={{
-                    backgroundColor: themeColors.backgroundDark,
-                    p: 1.5,
-                    borderRadius: 1,
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
-                    minHeight: 60,
-                    maxHeight: 200,
-                    overflow: 'auto',
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                    gap: 2,
                   }}
                 >
-                  {currentStepData.seenSet.length > 0 ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 1,
-                        alignItems: 'center',
-                      }}
-                    >
-                      {currentStepData.seenSet.map((num) => (
-                        <Box
-                          key={num}
-                          sx={{
-                            backgroundColor: '#10b9811a',
-                            padding: '4px 12px',
-                            borderRadius: 1,
-                            border: '1px solid #10b98133',
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: '#10b981',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {num}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  ) : (
+                  <Box>
                     <Typography
                       sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
                         color: themeColors.textSecondary,
-                        fontSize: '0.75rem',
-                        fontStyle: 'italic',
+                        mb: 1,
                       }}
                     >
-                      Set is empty
+                      Maximum Value
                     </Typography>
-                  )}
+                    <Box
+                      sx={{
+                        backgroundColor: themeColors.backgroundDark,
+                        p: 1.5,
+                        borderRadius: 1,
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem',
+                        border: `1px solid #10b98133`,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: currentStepData.maxVal !== null ? '#10b981' : themeColors.textSecondary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {currentStepData.maxVal !== null ? currentStepData.maxVal : 'Not set'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        color: themeColors.textSecondary,
+                        mb: 1,
+                      }}
+                    >
+                      Minimum Value
+                    </Typography>
+                    <Box
+                      sx={{
+                        backgroundColor: themeColors.backgroundDark,
+                        p: 1.5,
+                        borderRadius: 1,
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem',
+                        border: `1px solid #3b82f633`,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: currentStepData.minVal !== null ? '#3b82f6' : themeColors.textSecondary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {currentStepData.minVal !== null ? currentStepData.minVal : 'Not set'}
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
             </>
@@ -1345,7 +1340,7 @@ const ContainsDuplicateVisualization = () => {
             label="Array (comma-separated)"
             value={customNums}
             onChange={(e) => setCustomNums(e.target.value)}
-            placeholder="1,2,3,1"
+            placeholder="3,5,1,8,2,9,4"
             sx={{
               mt: 2,
               '& .MuiOutlinedInput-root': {
@@ -1376,4 +1371,5 @@ const ContainsDuplicateVisualization = () => {
   );
 };
 
-export default ContainsDuplicateVisualization;
+export default FindMaxMinVisualization;
+

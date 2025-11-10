@@ -44,8 +44,8 @@ const QuestionList = () => {
   const allQuestions = Object.values(questionsData).map((q) => ({
     id: q.id,
     title: q.title,
-    difficulty: 'Easy', // All current questions are Easy
-    topic: 'Arrays', // All current questions are Arrays
+    difficulty: q.difficulty,
+    topic: q.topic,
     status: q.id === 1 ? 'solved' : 'notStarted', // Two Sum is marked as solved
     tags: q.tags || [],
   }));

@@ -21,6 +21,10 @@ import { VisualizationControlProvider, useVisualizationControls } from '../conte
 import TwoSumVisualization from './Array/Easy/TwoSum/TwoSumVisualization';
 import BestTimeToBuySellStockVisualization from './Array/Easy/BestTimeToBuySellStock/BestTimeToBuySellStockVisualization';
 import ContainsDuplicateVisualization from './Array/Easy/ContainsDuplicate/ContainsDuplicateVisualization';
+import FindMaxMinVisualization from './Array/Easy/FindMaxMin/FindMaxMinVisualization';
+import ReverseArrayVisualization from './Array/Easy/ReverseArray/ReverseArrayVisualization';
+import KthMaxMinVisualization from './Array/Easy/KthMaxMin/KthMaxMinVisualization';
+import Sort012Visualization from './Array/Easy/Sort012/Sort012Visualization';
 
 interface GenericQuestionProps {
   question: QuestionData;
@@ -41,6 +45,14 @@ const GenericQuestionContent = ({ question }: GenericQuestionProps) => {
         return <BestTimeToBuySellStockVisualization />;
       case 8:
         return <ContainsDuplicateVisualization />;
+      case 9:
+        return <FindMaxMinVisualization />;
+      case 10:
+        return <ReverseArrayVisualization />;
+      case 11:
+        return <KthMaxMinVisualization />;
+      case 12:
+        return <Sort012Visualization />;
       default:
         return null;
     }

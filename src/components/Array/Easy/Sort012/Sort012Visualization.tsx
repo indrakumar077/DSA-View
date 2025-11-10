@@ -32,21 +32,22 @@ import { useVisualizationControls } from '../../../../contexts/VisualizationCont
 
 interface Step {
   line: number;
-  i?: number;
+  low?: number;
+  mid?: number;
+  high?: number;
   variables: Record<string, any>;
-  seenSet: number[];
+  array: number[];
   description: string;
-  isDuplicate?: boolean;
-  result?: boolean;
+  isComplete?: boolean;
 }
 
-const ContainsDuplicateVisualization = () => {
+const Sort012Visualization = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const questionId = id ? parseInt(id, 10) : 8;
+  const questionId = id ? parseInt(id, 10) : 12;
   const question = questionsData[questionId];
   const { registerControls, unregisterControls } = useVisualizationControls();
-  const [nums, setNums] = useState([1, 2, 3, 1]);
+  const [nums, setNums] = useState([2, 0, 2, 1, 1, 0]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -58,65 +59,121 @@ const ContainsDuplicateVisualization = () => {
 
   const generateSteps = (nums: number[]): Step[] => {
     const steps: Step[] = [];
-    const seen = new Set<number>();
+    const arr = [...nums];
+    let low = 0;
+    let mid = 0;
+    let high = arr.length - 1;
+
+    // Validate array contains only 0s, 1s, and 2s
+    const valid = arr.every(n => n === 0 || n === 1 || n === 2);
+    if (!valid) {
+      steps.push({
+        line: 0,
+        variables: {},
+        array: [...arr],
+        description: 'Invalid input: Array must contain only 0s, 1s, and 2s',
+        isComplete: true,
+      });
+      return steps;
+    }
 
     steps.push({
       line: 1,
-      variables: {},
-      seenSet: [],
-      description: 'Initialize empty set',
+      low,
+      mid,
+      high,
+      variables: { low, mid, high },
+      array: [...arr],
+      description: `Initialize pointers: low = ${low}, mid = ${mid}, high = ${high}`,
     });
 
-    for (let i = 0; i < nums.length; i++) {
+    while (mid <= high) {
       steps.push({
         line: 2,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `Check element at index ${i}: ${nums[i]}`,
+        low,
+        mid,
+        high,
+        variables: { low, mid, high, 'nums[mid]': arr[mid] },
+        array: [...arr],
+        description: `Check nums[${mid}] = ${arr[mid]}`,
       });
 
-      if (seen.has(nums[i])) {
+      if (arr[mid] === 0) {
+        // Swap with low
         steps.push({
           line: 3,
-          i,
-          variables: { i, 'nums[i]': nums[i] },
-          seenSet: Array.from(seen),
-          description: `Duplicate found! ${nums[i]} already exists in set`,
-          isDuplicate: true,
-          result: true,
+          low,
+          mid,
+          high,
+          variables: { low, mid, high, 'nums[mid]': arr[mid], 'nums[low]': arr[low] },
+          array: [...arr],
+          description: `nums[${mid}] = 0. Swap with nums[${low}]`,
         });
-        break;
+
+        const temp = arr[low];
+        arr[low] = arr[mid];
+        arr[mid] = temp;
+
+        steps.push({
+          line: 4,
+          low,
+          mid,
+          high,
+          variables: { low, mid, high },
+          array: [...arr],
+          description: `Swapped. Increment low and mid: low = ${low + 1}, mid = ${mid + 1}`,
+        });
+
+        low++;
+        mid++;
+      } else if (arr[mid] === 1) {
+        steps.push({
+          line: 5,
+          low,
+          mid,
+          high,
+          variables: { low, mid, high, 'nums[mid]': arr[mid] },
+          array: [...arr],
+          description: `nums[${mid}] = 1. Leave in place. Increment mid: mid = ${mid + 1}`,
+        });
+        mid++;
+      } else {
+        // arr[mid] === 2, swap with high
+        steps.push({
+          line: 6,
+          low,
+          mid,
+          high,
+          variables: { low, mid, high, 'nums[mid]': arr[mid], 'nums[high]': arr[high] },
+          array: [...arr],
+          description: `nums[${mid}] = 2. Swap with nums[${high}]`,
+        });
+
+        const temp = arr[mid];
+        arr[mid] = arr[high];
+        arr[high] = temp;
+
+        steps.push({
+          line: 7,
+          low,
+          mid,
+          high,
+          variables: { low, mid, high },
+          array: [...arr],
+          description: `Swapped. Decrement high: high = ${high - 1}`,
+        });
+
+        high--;
       }
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `${nums[i]} not in set, adding to set`,
-      });
-
-      seen.add(nums[i]);
-
-      steps.push({
-        line: 4,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        seenSet: Array.from(seen),
-        description: `Set updated: {${Array.from(seen).join(', ')}}`,
-      });
     }
 
-    if (!steps[steps.length - 1].isDuplicate) {
-      steps.push({
-        line: 5,
-        variables: {},
-        seenSet: Array.from(seen),
-        description: 'No duplicates found. All elements are distinct.',
-        result: false,
-      });
-    }
+    steps.push({
+      line: 8,
+      variables: {},
+      array: [...arr],
+      description: 'Sorting complete! Array is now sorted: all 0s, then 1s, then 2s.',
+      isComplete: true,
+    });
 
     return steps;
   };
@@ -138,27 +195,24 @@ const ContainsDuplicateVisualization = () => {
 
       intervalRef.current = setInterval(() => {
         setCurrentStep((prev) => {
-          const nextStep = prev + 1;
-          if (nextStep >= steps.length) {
+          if (prev >= steps.length - 1) {
             setIsPlaying(false);
             return prev;
           }
-          return nextStep;
+          return prev + 1;
         });
-      }, 1000 / speed) as unknown as number;
+      }, 2000 / speed) as unknown as number;
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
-        intervalRef.current = null;
       }
     }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
   }, [isPlaying, currentStep, steps.length, speed]);
 
   const handlePlayPause = useCallback(() => {
@@ -166,23 +220,19 @@ const ContainsDuplicateVisualization = () => {
       setCurrentStep(0);
       setIsPlaying(true);
     } else {
-      setIsPlaying(!isPlaying);
-    }
-  }, [currentStep, steps.length, isPlaying]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setIsPlaying(false);
-    }
-  }, [currentStep]);
-
-  const handleNext = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      setIsPlaying(false);
+      setIsPlaying((prev) => !prev);
     }
   }, [currentStep, steps.length]);
+
+  const handlePrevious = useCallback(() => {
+    setCurrentStep((prev) => Math.max(0, prev - 1));
+    setIsPlaying(false);
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1));
+    setIsPlaying(false);
+  }, [steps.length]);
 
   const handleCustomInputClick = useCallback(() => {
     setShowCustomInput(true);
@@ -209,7 +259,7 @@ const ContainsDuplicateVisualization = () => {
       const numArray = customNums
         .split(',')
         .map((n) => parseInt(n.trim()))
-        .filter((n) => !isNaN(n));
+        .filter((n) => !isNaN(n) && (n === 0 || n === 1 || n === 2));
       if (numArray.length >= 1) {
         setNums(numArray);
         setShowCustomInput(false);
@@ -222,29 +272,19 @@ const ContainsDuplicateVisualization = () => {
 
   const currentStepData = steps[currentStep] || steps[0];
 
-  const code = question?.codes?.[language as keyof typeof question.codes] || question?.codes?.Python || '';
-  const codeLines = useMemo(() => {
-    return code.split('\n');
-  }, [code, language]);
-
-  const getHighlightedLine = (stepLine: number, lang: string): number => {
-    const currentCode = question?.codes?.[lang as keyof typeof question.codes] || question?.codes?.Python || '';
-    if (!currentCode) return -1;
-    const lines = currentCode.split('\n');
+  const getLineNumberForStep = (code: string, stepLine: number, lang: string): number => {
+    const lines = code.split('\n');
     
     if (stepLine === 1) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\s*=\s*set\(\)/.test(line)) {
+        if (lang === 'Python' && /low\s*=\s*0/.test(line) && /mid\s*=\s*0/.test(line)) {
           return i + 1;
         }
-        if (lang === 'Java' && /Set<.*>.*seen\s*=\s*new HashSet/.test(line)) {
+        if ((lang === 'Java' || lang === 'C++') && /int\s+low\s*=\s*0/.test(line)) {
           return i + 1;
         }
-        if (lang === 'C++' && /unordered_set<.*>.*seen/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /const\s+seen\s*=\s*new Set\(\)/.test(line)) {
+        if (lang === 'JavaScript' && /let\s+low\s*=\s*0/.test(line)) {
           return i + 1;
         }
       }
@@ -253,35 +293,20 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 2) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /for\s+num\s+in\s+nums/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /for\s*\(int\s+num\s*:\s*nums\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /for\s*\(int\s+num\s*:\s*nums\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /for\s*\(const\s+num\s+of\s+nums\)/.test(line)) {
+        if (/while\s*\(mid\s*<=\s*high\)/.test(line) || /while\s+mid\s*<=\s*high/.test(line)) {
           return i + 1;
         }
       }
     }
     
-    if (stepLine === 3) {
+    if (stepLine === 3 || stepLine === 6) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /if\s+num\s+in\s+seen/.test(line)) {
-          return i + 1;
+        if (/if\s*\(nums\[mid\]\s*==\s*0\)/.test(line) || /if\s+nums\[mid\]\s*==\s*0/.test(line)) {
+          if (stepLine === 3) return i + 1;
         }
-        if (lang === 'Java' && /if\s*\(seen\.contains\(num\)\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /if\s*\(seen\.find\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /if\s*\(seen\.has\(num\)\)/.test(line)) {
-          return i + 1;
+        if (/if\s*\(nums\[mid\]\s*==\s*2\)/.test(line) || /else/.test(line)) {
+          if (stepLine === 6) return i + 1;
         }
       }
     }
@@ -289,16 +314,7 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 4) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /seen\.add\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /seen\.add\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /seen\.insert\(num\)/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /seen\.add\(num\)/.test(line)) {
+        if (/low\+\+|low\s*\+\s*=\s*1/.test(line) && /mid\+\+|mid\s*\+\s*=\s*1/.test(line)) {
           return i + 1;
         }
       }
@@ -307,25 +323,43 @@ const ContainsDuplicateVisualization = () => {
     if (stepLine === 5) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === 'Python' && /return\s+False/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'Java' && /return\s+false/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'C++' && /return\s+false/.test(line)) {
-          return i + 1;
-        }
-        if (lang === 'JavaScript' && /return\s+false/.test(line)) {
+        if (/elif\s*\(nums\[mid\]\s*==\s*1\)/.test(line) || /else\s+if\s*\(nums\[mid\]\s*==\s*1\)/.test(line)) {
           return i + 1;
         }
       }
     }
     
+    if (stepLine === 7) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (/high--|high\s*-\s*=\s*1/.test(line)) {
+          return i + 1;
+        }
+      }
+    }
+    
+    if (stepLine === 8) {
+      return lines.length;
+    }
+    
     return -1;
   };
 
+  const codeLines = useMemo(() => {
+    if (!question?.codes) return [];
+    const code = question.codes[language as keyof typeof question.codes] || question.codes.Python;
+    return code.split('\n');
+  }, [question?.codes, language]);
+
+  const getHighlightedLine = (stepLine: number, lang: string): number => {
+    if (!question?.codes) return -1;
+    const code = question.codes[lang as keyof typeof question.codes] || question.codes.Python;
+    return getLineNumberForStep(code, stepLine, lang);
+  };
+
   const highlightedLine = getHighlightedLine(currentStepData.line, language);
+
+  const currentArray = currentStepData.array || nums;
 
   if (!steps || steps.length === 0 || !currentStepData) {
     return (
@@ -423,7 +457,7 @@ const ContainsDuplicateVisualization = () => {
               color: themeColors.white,
             }}
           >
-            Contains Duplicate
+            Sort an array of 0s, 1s and 2s
           </Typography>
           <Tabs
             value={activeTab}
@@ -551,103 +585,26 @@ const ContainsDuplicateVisualization = () => {
             <>
               <Box
                 sx={{
-                  flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'flex-start',
                   gap: 4,
                   p: 4,
-                  position: 'relative',
+                  minHeight: '50vh',
                 }}
               >
-                {currentStepData.isDuplicate && currentStepData.result === true && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        backgroundColor: '#ef4444',
-                        color: themeColors.white,
-                        px: 4,
-                        py: 2,
-                        borderRadius: 2,
-                        fontSize: '1.125rem',
-                        fontWeight: 700,
-                        boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)',
-                        textAlign: 'center',
-                        animation: 'pulse 0.8s ease infinite',
-                        '@keyframes pulse': {
-                          '0%, 100%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                        },
-                      }}
-                    >
-                      🎯 Duplicate Found! Return true
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        gap: 3,
-                        backgroundColor: themeColors.inputBgDark,
-                        px: 3,
-                        py: 2,
-                        borderRadius: 2,
-                        border: `1px solid ${themeColors.borderLight}`,
-                      }}
-                    >
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Time Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          width: '1px',
-                          backgroundColor: themeColors.borderLight,
-                        }}
-                      />
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: themeColors.textSecondary,
-                            mb: 0.5,
-                          }}
-                        >
-                          Space Complexity
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                            color: themeColors.primary,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          O(n)
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-
-                {currentStepData.result === false && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                {currentStepData.isComplete && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                      alignItems: 'center',
+                      width: '100%',
+                      mb: 2,
+                    }}
+                  >
                     <Box
                       sx={{
                         backgroundColor: '#10b981',
@@ -659,9 +616,16 @@ const ContainsDuplicateVisualization = () => {
                         fontWeight: 700,
                         boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                         textAlign: 'center',
+                        animation: 'pulse 0.8s ease infinite',
+                        width: '100%',
+                        maxWidth: '500px',
+                        '@keyframes pulse': {
+                          '0%, 100%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                        },
                       }}
                     >
-                      ✅ No Duplicates! Return false
+                      ✅ Array Sorted Successfully!
                     </Box>
                     <Box
                       sx={{
@@ -672,6 +636,9 @@ const ContainsDuplicateVisualization = () => {
                         py: 2,
                         borderRadius: 2,
                         border: `1px solid ${themeColors.borderLight}`,
+                        width: '100%',
+                        maxWidth: '500px',
+                        justifyContent: 'center',
                       }}
                     >
                       <Box sx={{ textAlign: 'center' }}>
@@ -719,14 +686,14 @@ const ContainsDuplicateVisualization = () => {
                             fontFamily: 'monospace',
                           }}
                         >
-                          O(n)
+                          O(1)
                         </Typography>
                       </Box>
                     </Box>
                   </Box>
                 )}
 
-                <Box sx={{ textAlign: 'center', width: '100%', maxWidth: '800px' }}>
+                <Box sx={{ textAlign: 'center' }}>
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
@@ -750,11 +717,17 @@ const ContainsDuplicateVisualization = () => {
                     </Box>
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {nums.map((num, idx) => {
-                      const isCurrent = currentStepData.i === idx;
-                      const isDuplicate = currentStepData.isDuplicate && isCurrent;
-                      const inSet = currentStepData.seenSet.includes(num);
-                      const isSolutionIndex = currentStepData.isDuplicate && isCurrent;
+                    {currentArray.map((num, idx) => {
+                      const isLow = currentStepData.low === idx;
+                      const isMid = currentStepData.mid === idx;
+                      const isHigh = currentStepData.high === idx;
+                      const isSwapping = (currentStepData.line === 3 || currentStepData.line === 6) && (isLow || isMid || isHigh);
+                      
+                      const getColor = (val: number) => {
+                        if (val === 0) return '#ef4444';
+                        if (val === 1) return '#f59e0b';
+                        return '#3b82f6';
+                      };
 
                       return (
                         <Box
@@ -767,35 +740,30 @@ const ContainsDuplicateVisualization = () => {
                         >
                           <Box
                             sx={{
-                              width: 48,
-                              height: 48,
+                              width: 56,
+                              height: 56,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               borderRadius: 1.5,
-                              border: isSolutionIndex
-                                ? '3px solid #ef4444'
-                                : isCurrent
-                                ? `3px solid ${themeColors.primary}`
-                                : inSet
-                                ? `2px solid #10b981`
+                              border: isSwapping
+                                ? '3px solid #10b981'
+                                : isLow || isMid || isHigh
+                                ? `2px solid ${themeColors.primary}`
                                 : `1px solid ${themeColors.borderLight}`,
-                              backgroundColor: isSolutionIndex
-                                ? '#ef444433'
-                                : isCurrent
-                                ? `${themeColors.primary}33`
-                                : inSet
-                                ? '#10b9811a'
+                              backgroundColor: isSwapping
+                                ? '#10b98133'
+                                : isLow || isMid || isHigh
+                                ? `${themeColors.primary}1a`
                                 : 'transparent',
-                              opacity: isCurrent || inSet || isSolutionIndex ? 1 : 0.3,
                               transition: 'all 0.3s ease',
                             }}
                           >
                             <Typography
                               sx={{
-                                fontSize: '1.125rem',
+                                fontSize: '1.25rem',
                                 fontWeight: 700,
-                                color: themeColors.white,
+                                color: getColor(num),
                               }}
                             >
                               {num}
@@ -803,23 +771,24 @@ const ContainsDuplicateVisualization = () => {
                           </Box>
                           <Typography
                             sx={{
-                              mt: 0.5,
                               fontSize: '0.75rem',
                               color: themeColors.textSecondary,
+                              mt: 0.5,
+                              fontFamily: 'monospace',
                             }}
                           >
-                            {idx}
+                            [{idx}]
                           </Typography>
-                          {isCurrent && (
+                          {(isLow || isMid || isHigh) && (
                             <Typography
                               sx={{
-                                mt: 1,
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                color: isSolutionIndex ? '#ef4444' : themeColors.primary,
+                                fontSize: '0.625rem',
+                                color: themeColors.primary,
+                                mt: 0.25,
+                                fontWeight: 600,
                               }}
                             >
-                              i
+                              {isLow ? 'low' : isMid ? 'mid' : 'high'}
                             </Typography>
                           )}
                         </Box>
@@ -827,6 +796,7 @@ const ContainsDuplicateVisualization = () => {
                     })}
                   </Box>
                 </Box>
+
               </Box>
 
               <Box
@@ -842,14 +812,10 @@ const ContainsDuplicateVisualization = () => {
                     mb: 2,
                     p: 1.5,
                     borderRadius: 1,
-                    backgroundColor: currentStepData.isDuplicate 
-                      ? '#ef444433' 
-                      : currentStepData.result === false
+                    backgroundColor: currentStepData.isComplete
                       ? '#10b98133'
                       : themeColors.backgroundDark,
-                    borderLeft: currentStepData.isDuplicate 
-                      ? '3px solid #ef4444' 
-                      : currentStepData.result === false
+                    borderLeft: currentStepData.isComplete
                       ? '3px solid #10b981'
                       : `3px solid ${themeColors.primary}`,
                   }}
@@ -857,12 +823,8 @@ const ContainsDuplicateVisualization = () => {
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
-                      color: currentStepData.isDuplicate 
-                        ? '#ef4444' 
-                        : currentStepData.result === false
-                        ? '#10b981'
-                        : themeColors.white,
-                      fontWeight: currentStepData.isDuplicate || currentStepData.result !== undefined ? 700 : 500,
+                      color: currentStepData.isComplete ? '#10b981' : themeColors.white,
+                      fontWeight: currentStepData.isComplete ? 700 : 500,
                     }}
                   >
                     {currentStepData.description}
@@ -881,88 +843,6 @@ const ContainsDuplicateVisualization = () => {
                 </Typography>
                 <Box
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', md: '1fr' },
-                    gap: 2,
-                  }}
-                >
-                  <Box>
-                    <Box
-                      sx={{
-                        backgroundColor: themeColors.backgroundDark,
-                        p: 1.5,
-                        borderRadius: 1,
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        minHeight: 60,
-                        maxHeight: 200,
-                        overflow: 'auto',
-                      }}
-                    >
-                      {Object.keys(currentStepData.variables).length > 0 ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 2,
-                            alignItems: 'center',
-                          }}
-                        >
-                          {Object.entries(currentStepData.variables).map(([key, value]) => (
-                            <Box
-                              key={key}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                backgroundColor: `${themeColors.primary}1a`,
-                                padding: '4px 12px',
-                                borderRadius: 1,
-                                border: `1px solid ${themeColors.primary}33`,
-                              }}
-                            >
-                              <Typography sx={{ color: themeColors.textSecondary }}>
-                                {key}:
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  color: themeColors.white,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {String(value)}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                      ) : (
-                        <Typography
-                          sx={{
-                            color: themeColors.textSecondary,
-                            fontSize: '0.75rem',
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          No variables yet
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Typography
-                  sx={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: themeColors.white,
-                    mb: 1.5,
-                    mt: 2,
-                  }}
-                >
-                  Hash Set (seen)
-                </Typography>
-                <Box
-                  sx={{
                     backgroundColor: themeColors.backgroundDark,
                     p: 1.5,
                     borderRadius: 1,
@@ -973,32 +853,38 @@ const ContainsDuplicateVisualization = () => {
                     overflow: 'auto',
                   }}
                 >
-                  {currentStepData.seenSet.length > 0 ? (
+                  {Object.keys(currentStepData.variables).length > 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
                         flexWrap: 'wrap',
-                        gap: 1,
+                        gap: 2,
                         alignItems: 'center',
                       }}
                     >
-                      {currentStepData.seenSet.map((num) => (
+                      {Object.entries(currentStepData.variables).map(([key, value]) => (
                         <Box
-                          key={num}
+                          key={key}
                           sx={{
-                            backgroundColor: '#10b9811a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            backgroundColor: `${themeColors.primary}1a`,
                             padding: '4px 12px',
                             borderRadius: 1,
-                            border: '1px solid #10b98133',
+                            border: `1px solid ${themeColors.primary}33`,
                           }}
                         >
+                          <Typography sx={{ color: themeColors.textSecondary }}>
+                            {key}:
+                          </Typography>
                           <Typography
                             sx={{
-                              color: '#10b981',
+                              color: themeColors.white,
                               fontWeight: 600,
                             }}
                           >
-                            {num}
+                            {String(value)}
                           </Typography>
                         </Box>
                       ))}
@@ -1011,7 +897,7 @@ const ContainsDuplicateVisualization = () => {
                         fontStyle: 'italic',
                       }}
                     >
-                      Set is empty
+                      No variables yet
                     </Typography>
                   )}
                 </Box>
@@ -1020,19 +906,41 @@ const ContainsDuplicateVisualization = () => {
           ) : (
             <Box
               sx={{
-                flex: 1,
-                overflow: 'auto',
                 p: 4,
+                overflow: 'auto',
+                height: '100%',
               }}
             >
-              {question?.explanation && (
+              {question && (
                 <>
                   <Typography
                     sx={{
                       fontSize: '1.5rem',
                       fontWeight: 700,
                       color: themeColors.white,
+                      mb: 2,
+                    }}
+                  >
+                    {question.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '1rem',
+                      color: themeColors.textSecondary,
                       mb: 3,
+                      whiteSpace: 'pre-line',
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    {question.description}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      color: themeColors.white,
+                      mb: 2,
                     }}
                   >
                     Approach
@@ -1041,7 +949,7 @@ const ContainsDuplicateVisualization = () => {
                     sx={{
                       fontSize: '1rem',
                       color: themeColors.textSecondary,
-                      mb: 4,
+                      mb: 3,
                       lineHeight: 1.8,
                     }}
                   >
@@ -1050,15 +958,15 @@ const ContainsDuplicateVisualization = () => {
 
                   <Typography
                     sx={{
-                      fontSize: '1.5rem',
+                      fontSize: '1.25rem',
                       fontWeight: 700,
                       color: themeColors.white,
-                      mb: 3,
+                      mb: 2,
                     }}
                   >
                     Steps
                   </Typography>
-                  <Box component="ol" sx={{ pl: 3, mb: 4 }}>
+                  <Box component="ol" sx={{ pl: 3, mb: 3 }}>
                     {question.explanation.steps.map((step, idx) => (
                       <Typography
                         key={idx}
@@ -1066,7 +974,7 @@ const ContainsDuplicateVisualization = () => {
                         sx={{
                           fontSize: '1rem',
                           color: themeColors.textSecondary,
-                          mb: 2,
+                          mb: 1.5,
                           lineHeight: 1.8,
                         }}
                       >
@@ -1077,15 +985,15 @@ const ContainsDuplicateVisualization = () => {
 
                   <Box
                     sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                      display: 'flex',
                       gap: 3,
+                      mb: 3,
                     }}
                   >
-                    <Box sx={{ textAlign: 'center' }}>
+                    <Box>
                       <Typography
                         sx={{
-                          fontSize: '0.75rem',
+                          fontSize: '0.875rem',
                           color: themeColors.textSecondary,
                           mb: 0.5,
                         }}
@@ -1094,7 +1002,7 @@ const ContainsDuplicateVisualization = () => {
                       </Typography>
                       <Typography
                         sx={{
-                          fontSize: '1rem',
+                          fontSize: '1.125rem',
                           fontWeight: 700,
                           color: themeColors.primary,
                           fontFamily: 'monospace',
@@ -1103,10 +1011,10 @@ const ContainsDuplicateVisualization = () => {
                         {question.explanation.timeComplexity}
                       </Typography>
                     </Box>
-                    <Box sx={{ textAlign: 'center' }}>
+                    <Box>
                       <Typography
                         sx={{
-                          fontSize: '0.75rem',
+                          fontSize: '0.875rem',
                           color: themeColors.textSecondary,
                           mb: 0.5,
                         }}
@@ -1115,7 +1023,7 @@ const ContainsDuplicateVisualization = () => {
                       </Typography>
                       <Typography
                         sx={{
-                          fontSize: '1rem',
+                          fontSize: '1.125rem',
                           fontWeight: 700,
                           color: themeColors.primary,
                           fontFamily: 'monospace',
@@ -1146,6 +1054,7 @@ const ContainsDuplicateVisualization = () => {
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 borderBottom: `1px solid ${themeColors.borderLight}`,
                 px: 2,
               }}
@@ -1174,6 +1083,7 @@ const ContainsDuplicateVisualization = () => {
                 </Select>
               </FormControl>
             </Box>
+
             <Box
               sx={{
                 flex: 1,
@@ -1236,124 +1146,41 @@ const ContainsDuplicateVisualization = () => {
               </Box>
             </Box>
           </Box>
-        ) : (
-          <Box
-            sx={{
-              width: '50%',
-              display: 'flex',
-              flexDirection: 'column',
-              borderLeft: `1px solid ${themeColors.borderLight}`,
-              overflow: 'hidden',
-            }}
-          >
-            <Box
-              sx={{
-                height: 48,
-                display: 'flex',
-                alignItems: 'center',
-                borderBottom: `1px solid ${themeColors.borderLight}`,
-                px: 2,
-              }}
-            >
-              <FormControl size="small">
-                <Select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  sx={{
-                    backgroundColor: themeColors.borderLight,
-                    color: themeColors.white,
-                    fontSize: '0.875rem',
-                    minWidth: 100,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: 'none',
-                    },
-                    '& .MuiSvgIcon-root': {
-                      color: themeColors.white,
-                    },
-                  }}
-                >
-                  <MenuItem value="Python">Python</MenuItem>
-                  <MenuItem value="Java">Java</MenuItem>
-                  <MenuItem value="C++">C++</MenuItem>
-                  <MenuItem value="JavaScript">JavaScript</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box
-              sx={{
-                flex: 1,
-                overflow: 'auto',
-                p: 2,
-              }}
-            >
-              <Box
-                sx={{
-                  fontFamily: 'monospace',
-                  fontSize: '0.875rem',
-                  lineHeight: 1.6,
-                }}
-              >
-                {codeLines.map((line, idx) => {
-                  const lineNum = idx + 1;
-                  return (
-                    <Box
-                      key={idx}
-                      sx={{
-                        display: 'flex',
-                        py: 0.25,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 40,
-                          textAlign: 'right',
-                          pr: 2,
-                          color: themeColors.textSecondary,
-                          flexShrink: 0,
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        {lineNum}
-                      </Box>
-                      <Box
-                        component="pre"
-                        sx={{
-                          margin: 0,
-                          color: themeColors.white,
-                          whiteSpace: 'pre',
-                          flex: 1,
-                        }}
-                      >
-                        <code>{line}</code>
-                      </Box>
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Box>
-          </Box>
-        )}
+        ) : null}
       </Box>
 
-      <Dialog open={showCustomInput} onClose={() => setShowCustomInput(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: themeColors.white, backgroundColor: themeColors.inputBgDark }}>
-          Custom Input
-        </DialogTitle>
-        <DialogContent sx={{ backgroundColor: themeColors.inputBgDark }}>
+      <Dialog
+        open={showCustomInput}
+        onClose={() => setShowCustomInput(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: themeColors.inputBgDark,
+            color: themeColors.white,
+          },
+        }}
+      >
+        <DialogTitle>Test with Custom Input</DialogTitle>
+        <DialogContent>
           <TextField
+            autoFocus
+            margin="dense"
+            label="Array (comma-separated, only 0s, 1s, and 2s)"
             fullWidth
-            label="Array (comma-separated)"
+            variant="outlined"
             value={customNums}
             onChange={(e) => setCustomNums(e.target.value)}
-            placeholder="1,2,3,1"
+            placeholder="2,0,2,1,1,0"
             sx={{
-              mt: 2,
+              mt: 1,
               '& .MuiOutlinedInput-root': {
                 color: themeColors.white,
                 '& fieldset': {
                   borderColor: themeColors.borderLight,
                 },
                 '&:hover fieldset': {
+                  borderColor: themeColors.primary,
+                },
+                '&.Mui-focused fieldset': {
                   borderColor: themeColors.primary,
                 },
               },
@@ -1363,12 +1190,26 @@ const ContainsDuplicateVisualization = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ backgroundColor: themeColors.inputBgDark }}>
-          <Button onClick={() => setShowCustomInput(false)} sx={{ color: themeColors.textSecondary }}>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowCustomInput(false);
+              setCustomNums('');
+            }}
+            sx={{ color: themeColors.textSecondary }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleCustomInput} sx={{ color: themeColors.primary }}>
-            Apply
+          <Button
+            onClick={handleCustomInput}
+            sx={{
+              color: themeColors.primary,
+              '&:hover': {
+                backgroundColor: `${themeColors.primary}1a`,
+              },
+            }}
+          >
+            Run
           </Button>
         </DialogActions>
       </Dialog>
@@ -1376,4 +1217,5 @@ const ContainsDuplicateVisualization = () => {
   );
 };
 
-export default ContainsDuplicateVisualization;
+export default Sort012Visualization;
+
