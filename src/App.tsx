@@ -10,6 +10,7 @@ import FindMaxMinVisualization from './components/Array/Easy/FindMaxMin/FindMaxM
 import ReverseArrayVisualization from './components/Array/Easy/ReverseArray/ReverseArrayVisualization'
 import KthMaxMinVisualization from './components/Array/Easy/KthMaxMin/KthMaxMinVisualization'
 import Sort012Visualization from './components/Array/Easy/Sort012/Sort012Visualization'
+import CyclicallyRotateArrayVisualization from './components/Array/Easy/CyclicallyRotateArray/CyclicallyRotateArrayVisualization'
 
 // Dynamic Visualization Router
 const VisualizationRouter = () => {
@@ -44,6 +45,10 @@ const VisualizationRouter = () => {
     return <Sort012Visualization />;
   }
 
+  if (questionId === 15) {
+    return <CyclicallyRotateArrayVisualization />;
+  }
+
   return <Navigate to="/dashboard/questions" replace />;
 };
 
@@ -53,6 +58,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Navigate to="/dashboard/questions" replace />} />
         <Route path="/dashboard/questions" element={<QuestionList />} />
         <Route path="/dashboard/questions/:id" element={<Question />} />
         <Route path="/dashboard/questions/:id/visualize" element={<VisualizationRouter />} />

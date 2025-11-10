@@ -25,6 +25,10 @@ import FindMaxMinVisualization from './Array/Easy/FindMaxMin/FindMaxMinVisualiza
 import ReverseArrayVisualization from './Array/Easy/ReverseArray/ReverseArrayVisualization';
 import KthMaxMinVisualization from './Array/Easy/KthMaxMin/KthMaxMinVisualization';
 import Sort012Visualization from './Array/Easy/Sort012/Sort012Visualization';
+import KadaneAlgorithmVisualization from './Array/Medium/KadaneAlgorithm/KadaneAlgorithmVisualization';
+import UnionIntersectionVisualization from './Array/Easy/UnionIntersection/UnionIntersectionVisualization';
+import CyclicallyRotateArrayVisualization from './Array/Easy/CyclicallyRotateArray/CyclicallyRotateArrayVisualization';
+import MinimumJumpsVisualization from './Greedy/Medium/MinimumJumps/MinimumJumpsVisualization';
 
 interface GenericQuestionProps {
   question: QuestionData;
@@ -53,6 +57,14 @@ const GenericQuestionContent = ({ question }: GenericQuestionProps) => {
         return <KthMaxMinVisualization />;
       case 12:
         return <Sort012Visualization />;
+      case 14:
+        return <UnionIntersectionVisualization />;
+      case 15:
+        return <CyclicallyRotateArrayVisualization />;
+      case 16:
+        return <KadaneAlgorithmVisualization />;
+      case 19:
+        return <MinimumJumpsVisualization />;
       default:
         return null;
     }

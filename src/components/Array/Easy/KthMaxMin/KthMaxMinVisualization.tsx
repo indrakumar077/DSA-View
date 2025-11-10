@@ -33,12 +33,15 @@ interface Step {
   line: number;
   i?: number;
   variables: Record<string, any>;
-  sortedArray?: number[];
+  minHeap?: number[];
+  maxHeap?: number[];
+  currentNum?: number;
   kthMax?: number | null;
   kthMin?: number | null;
   description: string;
   isComplete?: boolean;
   result?: { kthMax: number; kthMin: number };
+  phase?: "findingMax" | "findingMin" | "complete";
 }
 
 const KthMaxMinVisualization = () => {
@@ -58,6 +61,20 @@ const KthMaxMinVisualization = () => {
   const [customK, setCustomK] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const intervalRef = useRef<number | null>(null);
+
+  // Helper function to maintain min-heap
+  const maintainMinHeap = (heap: number[]): number[] => {
+    const result = [...heap];
+    result.sort((a, b) => a - b);
+    return result;
+  };
+
+  // Helper function to maintain max-heap
+  const maintainMaxHeap = (heap: number[]): number[] => {
+    const result = [...heap];
+    result.sort((a, b) => b - a);
+    return result;
+  };
 
   const generateSteps = (nums: number[], k: number): Step[] => {
     const steps: Step[] = [];
@@ -82,60 +99,119 @@ const KthMaxMinVisualization = () => {
       return steps;
     }
 
-    // Step 1: Sort the array
+    // Phase 1: Find Kth Maximum using min-heap
     steps.push({
       line: 2,
       variables: { k, "nums.length": nums.length },
-      description: `Sort the array to find Kth max and min elements. K = ${k}`,
+      phase: "findingMax",
+      description: `Finding ${k}th maximum using min-heap. We'll keep the ${k} largest elements.`,
     });
 
-    const sortedArray = [...nums].sort((a, b) => a - b);
+    const minHeap: number[] = [];
+    for (let i = 0; i < nums.length; i++) {
+      const num = nums[i];
+      minHeap.push(num);
+      const heapAfterAdd = maintainMinHeap(minHeap);
 
-    steps.push({
-      line: 3,
-      variables: { k, sortedArray: [...sortedArray] },
-      sortedArray: [...sortedArray],
-      description: `Array sorted in ascending order: [${sortedArray.join(
-        ", "
-      )}]`,
-    });
+      steps.push({
+        line: 3,
+        i,
+        variables: { k, currentNum: num, "minHeap.size": heapAfterAdd.length },
+        minHeap: [...heapAfterAdd],
+        currentNum: num,
+        phase: "findingMax",
+        description: `Processing nums[${i}] = ${num}. Added to min-heap. Heap size: ${heapAfterAdd.length}`,
+      });
 
-    // Step 2: Find Kth minimum (k-1 index in sorted array)
-    const kthMin = sortedArray[k - 1];
-    steps.push({
-      line: 4,
-      variables: { k, "k-1": k - 1, "sortedArray[k-1]": kthMin },
-      sortedArray: [...sortedArray],
-      kthMin,
-      description: `Kth minimum (${k}th smallest): sortedArray[${
-        k - 1
-      }] = ${kthMin}`,
-    });
+      if (heapAfterAdd.length > k) {
+        const removed = heapAfterAdd.shift(); // Remove smallest
+        const heapAfterRemove = maintainMinHeap(heapAfterAdd);
 
-    // Step 3: Find Kth maximum (n-k index in sorted array)
-    const kthMax = sortedArray[nums.length - k];
+        steps.push({
+          line: 4,
+          i,
+          variables: { k, removed, "minHeap.size": heapAfterRemove.length },
+          minHeap: [...heapAfterRemove],
+          currentNum: num,
+          phase: "findingMax",
+          description: `Heap size (${heapAfterAdd.length}) > K (${k}). Removed smallest element ${removed}. Heap now contains ${k} largest elements.`,
+        });
+      }
+    }
+
+    const kthMax = maintainMinHeap(minHeap)[0];
     steps.push({
       line: 5,
-      variables: {
-        k,
-        "nums.length - k": nums.length - k,
-        "sortedArray[n-k]": kthMax,
-      },
-      sortedArray: [...sortedArray],
-      kthMin,
+      variables: { k, kthMax, minHeap: maintainMinHeap(minHeap) },
+      minHeap: maintainMinHeap(minHeap),
       kthMax,
-      description: `Kth maximum (${k}th largest): sortedArray[${
-        nums.length - k
-      }] = ${kthMax}`,
+      phase: "findingMax",
+      description: `Kth maximum found: Root of min-heap = ${kthMax} (${k}th largest element)`,
+    });
+
+    // Phase 2: Find Kth Minimum using max-heap
+    steps.push({
+      line: 6,
+      variables: { k, kthMax },
+      kthMax,
+      phase: "findingMin",
+      description: `Finding ${k}th minimum using max-heap. We'll keep the ${k} smallest elements.`,
+    });
+
+    const maxHeap: number[] = [];
+    for (let i = 0; i < nums.length; i++) {
+      const num = nums[i];
+      maxHeap.push(num);
+      const heapAfterAdd = maintainMaxHeap(maxHeap);
+
+      steps.push({
+        line: 7,
+        i,
+        variables: { k, currentNum: num, "maxHeap.size": heapAfterAdd.length },
+        maxHeap: [...heapAfterAdd],
+        currentNum: num,
+        kthMax,
+        phase: "findingMin",
+        description: `Processing nums[${i}] = ${num}. Added to max-heap. Heap size: ${heapAfterAdd.length}`,
+      });
+
+      if (heapAfterAdd.length > k) {
+        const removed = heapAfterAdd.shift(); // Remove largest
+        const heapAfterRemove = maintainMaxHeap(heapAfterAdd);
+
+        steps.push({
+          line: 8,
+          i,
+          variables: { k, removed, "maxHeap.size": heapAfterRemove.length },
+          maxHeap: [...heapAfterRemove],
+          currentNum: num,
+          kthMax,
+          phase: "findingMin",
+          description: `Heap size (${heapAfterAdd.length}) > K (${k}). Removed largest element ${removed}. Heap now contains ${k} smallest elements.`,
+        });
+      }
+    }
+
+    const kthMin = maintainMaxHeap(maxHeap)[0];
+    steps.push({
+      line: 9,
+      variables: { k, kthMin, maxHeap: maintainMaxHeap(maxHeap) },
+      maxHeap: maintainMaxHeap(maxHeap),
+      kthMax,
+      kthMin,
+      phase: "findingMin",
+      description: `Kth minimum found: Root of max-heap = ${kthMin} (${k}th smallest element)`,
     });
 
     // Final result
     steps.push({
-      line: 6,
+      line: 10,
       variables: { k, kthMax, kthMin },
-      sortedArray: [...sortedArray],
+      minHeap: maintainMinHeap(minHeap),
+      maxHeap: maintainMaxHeap(maxHeap),
       kthMax,
       kthMin,
+      phase: "complete",
       description: `Result: ${k}th Maximum = ${kthMax}, ${k}th Minimum = ${kthMin}`,
       isComplete: true,
       result: { kthMax, kthMin },
@@ -299,79 +375,202 @@ const KthMaxMinVisualization = () => {
       }
     }
 
+    // Line 2: Start finding max with min-heap
     if (stepLine === 2) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === "Python" && /sorted\(nums\)/.test(line)) {
+        if (lang === "Python" && /min_heap\s*=/.test(line)) {
           return i + 1;
         }
-        if (lang === "Java" && /Arrays\.sort/.test(line)) {
+        if (lang === "Java" && /PriorityQueue.*minHeap/.test(line)) {
           return i + 1;
         }
-        if (lang === "C++" && /sort\(/.test(line)) {
+        if (lang === "C++" && /priority_queue.*minHeap/.test(line)) {
           return i + 1;
         }
-        if (lang === "JavaScript" && /\.sort\(/.test(line)) {
-          return i + 1;
-        }
-      }
-    }
-
-    if (stepLine === 3 || stepLine === 4) {
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (lang === "Python" && /sorted_nums\[k\s*-\s*1\]/.test(line)) {
-          return i + 1;
-        }
-        if (lang === "Java" && /sorted\[k\s*-\s*1\]/.test(line)) {
-          return i + 1;
-        }
-        if (lang === "C++" && /sorted\[k\s*-\s*1\]/.test(line)) {
-          return i + 1;
-        }
-        if (lang === "JavaScript" && /sorted\[k\s*-\s*1\]/.test(line)) {
+        if (lang === "JavaScript" && /const\s+minHeap\s*=/.test(line)) {
           return i + 1;
         }
       }
     }
 
-    if (stepLine === 5) {
+    // Line 3: Processing elements for min-heap
+    if (stepLine === 3) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
+        if (lang === "Python" && /for\s+num\s+in\s+nums/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "Java" && /for\s*\(.*num\s*:\s*nums\)/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "C++" && /for\s*\(.*num\s*:\s*nums\)/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "JavaScript" && /for\s*\(.*num\s+of\s+nums\)/.test(line)) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 4: Heap size check and pop
+    if (stepLine === 4) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /if\s+len\(min_heap\)\s*>\s*k/.test(line)) {
+          return i + 1;
+        }
         if (
-          lang === "Python" &&
-          /sorted_nums\[len\(nums\)\s*-\s*k\]/.test(line)
+          lang === "Java" &&
+          /if\s*\(minHeap\.size\(\)\s*>\s*k\)/.test(line)
         ) {
           return i + 1;
         }
-        if (lang === "Java" && /sorted\[nums\.length\s*-\s*k\]/.test(line)) {
-          return i + 1;
-        }
-        if (lang === "C++" && /sorted\[nums\.size\(\)\s*-\s*k\]/.test(line)) {
+        if (lang === "C++" && /if\s*\(minHeap\.size\(\)\s*>\s*k\)/.test(line)) {
           return i + 1;
         }
         if (
           lang === "JavaScript" &&
-          /sorted\[nums\.length\s*-\s*k\]/.test(line)
+          /if\s*\(minHeap\.size\(\)\s*>\s*k\)/.test(line)
         ) {
           return i + 1;
         }
       }
     }
 
+    // Line 5: Get kth max from min-heap
+    if (stepLine === 5) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /kth_max\s*=\s*min_heap\[0\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "Java" && /kthMax\s*=\s*minHeap\.peek\(\)/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "C++" && /kthMax\s*=\s*minHeap\.top\(\)/.test(line)) {
+          return i + 1;
+        }
+        if (
+          lang === "JavaScript" &&
+          /kthMax\s*=\s*minHeap\.peek\(\)/.test(line)
+        ) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 6: Start finding min with max-heap
     if (stepLine === 6) {
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (lang === "Python" && /return/.test(line)) {
+        if (lang === "Python" && /max_heap\s*=/.test(line)) {
           return i + 1;
         }
-        if (lang === "Java" && /return/.test(line)) {
+        if (lang === "Java" && /PriorityQueue.*maxHeap/.test(line)) {
           return i + 1;
         }
-        if (lang === "C++" && /return/.test(line)) {
+        if (lang === "C++" && /priority_queue.*maxHeap/.test(line)) {
           return i + 1;
         }
-        if (lang === "JavaScript" && /return/.test(line)) {
+        if (lang === "JavaScript" && /const\s+maxHeap\s*=/.test(line)) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 7: Processing elements for max-heap
+    if (stepLine === 7) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /for\s+num\s+in\s+nums/.test(line) && i > 10) {
+          return i + 1;
+        }
+        if (
+          lang === "Java" &&
+          /for\s*\(.*num\s*:\s*nums\)/.test(line) &&
+          i > 15
+        ) {
+          return i + 1;
+        }
+        if (
+          lang === "C++" &&
+          /for\s*\(.*num\s*:\s*nums\)/.test(line) &&
+          i > 15
+        ) {
+          return i + 1;
+        }
+        if (
+          lang === "JavaScript" &&
+          /for\s*\(.*num\s+of\s+nums\)/.test(line) &&
+          i > 50
+        ) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 8: Max-heap size check and pop
+    if (stepLine === 8) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /if\s+len\(max_heap\)\s*>\s*k/.test(line)) {
+          return i + 1;
+        }
+        if (
+          lang === "Java" &&
+          /if\s*\(maxHeap\.size\(\)\s*>\s*k\)/.test(line)
+        ) {
+          return i + 1;
+        }
+        if (lang === "C++" && /if\s*\(maxHeap\.size\(\)\s*>\s*k\)/.test(line)) {
+          return i + 1;
+        }
+        if (
+          lang === "JavaScript" &&
+          /if\s*\(maxHeap\.size\(\)\s*>\s*k\)/.test(line)
+        ) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 9: Get kth min from max-heap
+    if (stepLine === 9) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /kth_min\s*=\s*-max_heap\[0\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "Java" && /kthMin\s*=\s*maxHeap\.peek\(\)/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "C++" && /kthMin\s*=\s*maxHeap\.top\(\)/.test(line)) {
+          return i + 1;
+        }
+        if (
+          lang === "JavaScript" &&
+          /kthMin\s*=\s*maxHeap\.peek\(\)/.test(line)
+        ) {
+          return i + 1;
+        }
+      }
+    }
+
+    // Line 10: Return result
+    if (stepLine === 10) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (lang === "Python" && /return\s+kth_max/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "Java" && /return\s+new\s+int\[\]/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "C++" && /return\s+\{kthMax/.test(line)) {
+          return i + 1;
+        }
+        if (lang === "JavaScript" && /return\s+\[kthMax/.test(line)) {
           return i + 1;
         }
       }
@@ -398,8 +597,6 @@ const KthMaxMinVisualization = () => {
       </Box>
     );
   }
-
-  const sortedArray = currentStepData.sortedArray || nums;
 
   return (
     <Box
@@ -677,7 +874,7 @@ const KthMaxMinVisualization = () => {
                             fontFamily: "monospace",
                           }}
                         >
-                          O(n log n)
+                          O(n log k)
                         </Typography>
                       </Box>
                       <Box
@@ -704,7 +901,7 @@ const KthMaxMinVisualization = () => {
                             fontFamily: "monospace",
                           }}
                         >
-                          O(n)
+                          O(k)
                         </Typography>
                       </Box>
                     </Box>
@@ -755,6 +952,9 @@ const KthMaxMinVisualization = () => {
                         currentStepData.kthMin !== null &&
                         num === currentStepData.kthMin &&
                         currentStepData.isComplete;
+                      const isCurrent =
+                        currentStepData.i !== undefined &&
+                        idx === currentStepData.i;
 
                       return (
                         <Box
@@ -777,13 +977,18 @@ const KthMaxMinVisualization = () => {
                                 ? "3px solid #10b981"
                                 : isKthMin
                                 ? "3px solid #3b82f6"
+                                : isCurrent
+                                ? "3px solid #f59e0b"
                                 : `1px solid ${themeColors.borderLight}`,
                               backgroundColor: isKthMax
                                 ? "#10b98133"
                                 : isKthMin
                                 ? "#3b82f633"
+                                : isCurrent
+                                ? "#f59e0b33"
                                 : "transparent",
-                              opacity: isKthMax || isKthMin ? 1 : 0.5,
+                              opacity:
+                                isKthMax || isKthMin || isCurrent ? 1 : 0.5,
                               transition: "all 0.3s ease",
                             }}
                           >
@@ -806,6 +1011,18 @@ const KthMaxMinVisualization = () => {
                           >
                             {idx}
                           </Typography>
+                          {isCurrent && (
+                            <Typography
+                              sx={{
+                                mt: 0.5,
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                color: "#f59e0b",
+                              }}
+                            >
+                              Current
+                            </Typography>
+                          )}
                           {isKthMax && (
                             <Typography
                               sx={{
@@ -836,7 +1053,8 @@ const KthMaxMinVisualization = () => {
                   </Box>
                 </Box>
 
-                {currentStepData.sortedArray && (
+                {/* Min-Heap for Kth Maximum */}
+                {currentStepData.minHeap && currentStepData.phase && (
                   <Box
                     sx={{
                       textAlign: "center",
@@ -852,7 +1070,7 @@ const KthMaxMinVisualization = () => {
                         mb: 1,
                       }}
                     >
-                      Sorted Array{" "}
+                      Min-Heap (for {k}th Maximum){" "}
                       <Box
                         component="code"
                         sx={{
@@ -864,8 +1082,20 @@ const KthMaxMinVisualization = () => {
                           fontFamily: "monospace",
                         }}
                       >
-                        sorted
+                        minHeap
                       </Box>
+                      {currentStepData.currentNum !== undefined && (
+                        <Box
+                          component="span"
+                          sx={{
+                            ml: 2,
+                            color: themeColors.primary,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          Processing: {currentStepData.currentNum}
+                        </Box>
+                      )}
                     </Typography>
                     <Box
                       sx={{
@@ -876,15 +1106,8 @@ const KthMaxMinVisualization = () => {
                         justifyContent: "center",
                       }}
                     >
-                      {sortedArray.map((num, idx) => {
-                        const isKthMax =
-                          currentStepData.kthMax !== null &&
-                          num === currentStepData.kthMax &&
-                          idx === nums.length - k;
-                        const isKthMin =
-                          currentStepData.kthMin !== null &&
-                          num === currentStepData.kthMin &&
-                          idx === k - 1;
+                      {currentStepData.minHeap.map((num, idx) => {
+                        const isRoot = idx === 0;
 
                         return (
                           <Box
@@ -903,27 +1126,13 @@ const KthMaxMinVisualization = () => {
                                 alignItems: "center",
                                 justifyContent: "center",
                                 borderRadius: 1.5,
-                                border: isKthMax
+                                border: isRoot
                                   ? "3px solid #10b981"
-                                  : isKthMin
-                                  ? "3px solid #3b82f6"
-                                  : idx === k - 1 || idx === nums.length - k
-                                  ? `2px solid ${themeColors.primary}`
                                   : `1px solid ${themeColors.borderLight}`,
-                                backgroundColor: isKthMax
+                                backgroundColor: isRoot
                                   ? "#10b98133"
-                                  : isKthMin
-                                  ? "#3b82f633"
-                                  : idx === k - 1 || idx === nums.length - k
-                                  ? `${themeColors.primary}1a`
                                   : "transparent",
-                                opacity:
-                                  isKthMax ||
-                                  isKthMin ||
-                                  idx === k - 1 ||
-                                  idx === nums.length - k
-                                    ? 1
-                                    : 0.5,
+                                opacity: 1,
                                 transition: "all 0.3s ease",
                               }}
                             >
@@ -937,37 +1146,128 @@ const KthMaxMinVisualization = () => {
                                 {num}
                               </Typography>
                             </Box>
-                            <Typography
-                              sx={{
-                                mt: 0.5,
-                                fontSize: "0.75rem",
-                                color: themeColors.textSecondary,
-                              }}
-                            >
-                              {idx}
-                            </Typography>
-                            {idx === k - 1 && (
+                            {isRoot && (
                               <Typography
                                 sx={{
                                   mt: 0.5,
-                                  fontSize: "0.625rem",
-                                  fontWeight: 600,
-                                  color: "#3b82f6",
-                                }}
-                              >
-                                Kth Min
-                              </Typography>
-                            )}
-                            {idx === nums.length - k && (
-                              <Typography
-                                sx={{
-                                  mt: 0.5,
-                                  fontSize: "0.625rem",
-                                  fontWeight: 600,
+                                  fontSize: "0.75rem",
+                                  fontWeight: 700,
                                   color: "#10b981",
                                 }}
                               >
-                                Kth Max
+                                Root ({k}th Max)
+                              </Typography>
+                            )}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Max-Heap for Kth Minimum */}
+                {currentStepData.maxHeap && currentStepData.phase && (
+                  <Box
+                    sx={{
+                      textAlign: "center",
+                      width: "100%",
+                      maxWidth: "800px",
+                      mt: 4,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "0.875rem",
+                        color: themeColors.textSecondary,
+                        mb: 1,
+                      }}
+                    >
+                      Max-Heap (for {k}th Minimum){" "}
+                      <Box
+                        component="code"
+                        sx={{
+                          backgroundColor: themeColors.inputBgDark,
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 0.5,
+                          fontSize: "0.75rem",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        maxHeap
+                      </Box>
+                      {currentStepData.currentNum !== undefined && (
+                        <Box
+                          component="span"
+                          sx={{
+                            ml: 2,
+                            color: themeColors.primary,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          Processing: {currentStepData.currentNum}
+                        </Box>
+                      )}
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        mt: 1,
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {currentStepData.maxHeap.map((num, idx) => {
+                        const isRoot = idx === 0;
+
+                        return (
+                          <Box
+                            key={idx}
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 48,
+                                height: 48,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: 1.5,
+                                border: isRoot
+                                  ? "3px solid #3b82f6"
+                                  : `1px solid ${themeColors.borderLight}`,
+                                backgroundColor: isRoot
+                                  ? "#3b82f633"
+                                  : "transparent",
+                                opacity: 1,
+                                transition: "all 0.3s ease",
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: "1.125rem",
+                                  fontWeight: 700,
+                                  color: themeColors.white,
+                                }}
+                              >
+                                {num}
+                              </Typography>
+                            </Box>
+                            {isRoot && (
+                              <Typography
+                                sx={{
+                                  mt: 0.5,
+                                  fontSize: "0.75rem",
+                                  fontWeight: 700,
+                                  color: "#3b82f6",
+                                }}
+                              >
+                                Root ({k}th Min)
                               </Typography>
                             )}
                           </Box>
