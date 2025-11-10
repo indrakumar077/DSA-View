@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Your Account - DSA View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b6ec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101d22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#333333] dark:text-gray-200">
+<div class="relative flex min-h-screen w-full flex-col">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap px-6 sm:px-10 py-4 border-b border-gray-200 dark:border-b-[#233f48]">
+<div class="flex items-center gap-4 text-black dark:text-white">
+<div class="size-6 text-primary">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2 1M4 7l2-1M4 7v2.5M12 21.75l-3.75-1.5L4.5 18v-4.5l3.75 1.5L12 16.5l3.75-1.5L19.5 18v4.5l-3.75 1.5L12 21.75z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em]">DSA View</h2>
+</div>
+<a class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 transition-colors" href="#">
+<span class="truncate">Log In</span>
+</a>
+</header>
+<main class="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-lg space-y-8">
+<div>
+<h1 class="text-center text-4xl font-black leading-tight tracking-[-0.033em] text-black dark:text-white">Create your DSA View account</h1>
+<p class="mt-2 text-center text-base text-gray-600 dark:text-gray-400">See algorithms in action. Sign up to start learning.</p>
+</div>
+<form class="mt-8 space-y-6 bg-white dark:bg-[#111e22] p-8 rounded-xl shadow-md dark:shadow-2xl">
+<div class="space-y-4">
+<div class="flex flex-col">
+<label class="text-sm font-medium leading-normal pb-2 dark:text-white" for="full-name">Full Name</label>
+<input autocomplete="name" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-black dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-[#325a67] bg-gray-50 dark:bg-[#192d33] h-12 placeholder:text-gray-400 dark:placeholder:text-[#92bbc9] px-4 text-base font-normal leading-normal" id="full-name" name="full-name" placeholder="e.g., Grace Hopper" required="" type="text" value=""/>
+</div>
+<div class="flex flex-col">
+<label class="text-sm font-medium leading-normal pb-2 dark:text-white" for="email-address">Email Address</label>
+<input autocomplete="email" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-black dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-[#325a67] bg-gray-50 dark:bg-[#192d33] h-12 placeholder:text-gray-400 dark:placeholder:text-[#92bbc9] px-4 text-base font-normal leading-normal" id="email-address" name="email" placeholder="you@example.com" required="" type="email" value=""/>
+</div>
+<div class="flex flex-col">
+<label class="text-sm font-medium leading-normal pb-2 dark:text-white" for="password">Password</label>
+<div class="relative flex w-full flex-1 items-stretch">
+<input autocomplete="new-password" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-black dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-[#325a67] bg-gray-50 dark:bg-[#192d33] h-12 placeholder:text-gray-400 dark:placeholder:text-[#92bbc9] px-4 text-base font-normal leading-normal" id="password" name="password" placeholder="Create a strong password" required="" type="password" value=""/>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="text-sm font-medium leading-normal pb-2 dark:text-white" for="confirm-password">Confirm Password</label>
+<div class="relative flex w-full flex-1 items-stretch">
+<input autocomplete="new-password" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-black dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-[#325a67] bg-gray-50 dark:bg-[#192d33] h-12 placeholder:text-gray-400 dark:placeholder:text-[#92bbc9] px-4 text-base font-normal leading-normal" id="confirm-password" name="confirm-password" placeholder="Re-enter your password" required="" type="password" value=""/>
+</div>
+</div>
+</div>
+<div class="flex items-start">
+<input class="h-4 w-4 mt-0.5 rounded border-gray-300 dark:border-[#325a67] bg-gray-100 dark:bg-[#192d33] text-primary focus:ring-primary" id="terms-and-conditions" name="terms-and-conditions" type="checkbox"/>
+<label class="ml-2 block text-sm text-gray-900 dark:text-gray-300" for="terms-and-conditions">
+                            I agree to the <a class="font-medium text-primary hover:underline" href="#">Terms and Conditions</a>.
+                        </label>
+</div>
+<div>
+<button class="group relative flex w-full justify-center rounded-lg border border-transparent bg-primary py-3 px-4 text-sm font-bold text-background-dark hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600" type="submit">
+                            Sign Up
+                        </button>
+</div>
+<div class="text-center">
+<p class="text-sm text-gray-600 dark:text-gray-400">
+                            Already have an account? <a class="font-bold text-primary hover:underline" href="#">Log In</a>
+</p>
+</div>
+</form>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>
