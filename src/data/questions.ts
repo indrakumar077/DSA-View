@@ -25,6 +25,7 @@ export interface QuestionData {
   tags: string[];
   difficulty: "Easy" | "Medium" | "Hard";
   topic: string;
+  leetcodeNumber?: number;
   hasVisualization: boolean;
 }
 
@@ -116,6 +117,7 @@ export const questionsData: Record<number, QuestionData> = {
     tags: ["Array", "Hash Table"],
     difficulty: "Easy",
     topic: "Arrays",
+    leetcodeNumber: 1,
     hasVisualization: true,
   },
   2: {
@@ -202,6 +204,7 @@ export const questionsData: Record<number, QuestionData> = {
     tags: ["Array", "Dynamic Programming"],
     difficulty: "Easy",
     topic: "Arrays",
+    leetcodeNumber: 121,
     hasVisualization: true,
   },
   8: {
@@ -280,6 +283,7 @@ export const questionsData: Record<number, QuestionData> = {
     tags: ["Array", "Hash Table", "Sorting"],
     difficulty: "Easy",
     topic: "Arrays",
+    leetcodeNumber: 217,
     hasVisualization: true,
   },
   9: {
@@ -672,6 +676,7 @@ export const questionsData: Record<number, QuestionData> = {
     tags: ["Array", "Two Pointers", "Sorting"],
     difficulty: "Easy",
     topic: "Arrays",
+    leetcodeNumber: 75,
     hasVisualization: true,
   },
 };
