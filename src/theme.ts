@@ -1,24 +1,10 @@
 import { createTheme } from '@mui/material/styles';
+import { themeConfig } from './config/theme.config';
 
-// Centralized color configuration - can be changed from here
-export const themeColors = {
-  primary: '#13b6ec',
-  backgroundLight: '#f6f8f8',
-  backgroundDark: '#101d22',
-  textPrimary: '#111e22',
-  textSecondary: '#92bbc9',
-  borderLight: '#325a67',
-  inputBgLight: '#f6f8f8',
-  inputBgDark: '#192d33',
-  gray50: '#f9fafb',
-  gray300: '#d1d5db',
-  gray400: '#9ca3af',
-  gray600: '#4b5563',
-  gray800: '#1f2937',
-  gray900: '#111827',
-  white: '#ffffff',
-  gray200: '#e5e7eb',
-};
+// Re-export theme config for easy access
+export const themeColors = themeConfig.colors;
+export const themeFonts = themeConfig.fonts;
+export const themeLogos = themeConfig.logos;
 
 export const theme = createTheme({
   palette: {
@@ -37,27 +23,27 @@ export const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Space Grotesk", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: themeFonts.primary,
     h1: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
+      fontFamily: themeFonts.primary,
+      fontWeight: themeFonts.weights.bold,
     },
     h2: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 900,
+      fontFamily: themeFonts.primary,
+      fontWeight: themeFonts.weights.black,
     },
     h3: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
+      fontFamily: themeFonts.primary,
+      fontWeight: themeFonts.weights.bold,
     },
     body1: {
-      fontFamily: '"Space Grotesk", sans-serif',
+      fontFamily: themeFonts.primary,
     },
     button: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
+      fontFamily: themeFonts.primary,
+      fontWeight: themeFonts.weights.bold,
       textTransform: 'none',
-      letterSpacing: '0.015em',
+      letterSpacing: themeFonts.letterSpacing.wide,
     },
   },
   components: {
@@ -66,7 +52,7 @@ export const theme = createTheme({
         root: {
           borderRadius: '0.5rem',
           padding: '12px 20px',
-          fontSize: '1rem',
+          fontSize: '0.875rem',
           fontWeight: 700,
         },
         contained: {
