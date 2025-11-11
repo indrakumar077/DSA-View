@@ -12,156 +12,295 @@ import { StepDescription, SolutionMessage } from '../../../../shared/components/
 import { VisualizationStep, Language } from '../../../../types';
 import { DEFAULT_LANGUAGE } from '../../../../constants';
 
-interface TwoSumStep extends VisualizationStep {
-  i?: number;
-  j?: number;
-  complement?: number;
-  hashMap: Record<number, number>;
+interface TrappingRainWaterStep extends VisualizationStep {
+  left?: number;
+  right?: number;
+  maxLeft?: number;
+  maxRight?: number;
+  water?: number[];
+  totalWater?: number;
   isSolution?: boolean;
-  result?: number[];
+  result?: number;
 }
 
-export const TwoSumVisualizationPage = () => {
+export const TrappingRainWaterVisualizationPage = () => {
   const question = useQuestionData();
-  const questionId = question?.id || 1;
+  const questionId = question?.id || 42;
   
   // Get default input from question data
-  const defaultNums: number[] = (question?.defaultInput as any)?.nums || [2, 7, 11, 15];
-  const defaultTarget: number = (question?.defaultInput as any)?.target || 9;
+  const defaultHeight: number[] = (question?.defaultInput as any)?.height || [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1];
   
-  const [nums, setNums] = useState<number[]>(defaultNums);
-  const [target, setTarget] = useState<number>(defaultTarget);
+  const [height, setHeight] = useState<number[]>(defaultHeight);
   const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customNums, setCustomNums] = useState('');
-  const [customTarget, setCustomTarget] = useState('');
+  const [customHeight, setCustomHeight] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
   // Update when question changes
   useEffect(() => {
     if (question?.defaultInput) {
       const input = question.defaultInput as any;
-      if (input.nums && Array.isArray(input.nums)) {
-        setNums(input.nums);
-      }
-      if (input.target !== undefined && typeof input.target === 'number') {
-        setTarget(input.target);
+      if (input.height && Array.isArray(input.height)) {
+        setHeight(input.height);
       }
     }
   }, [question]);
 
-  // Generate animation steps
-  const generateSteps = (nums: number[], target: number): TwoSumStep[] => {
-    const steps: TwoSumStep[] = [];
-    const map: Record<number, number> = {};
+  // Generate animation steps using two-pointer approach
+  const generateSteps = (height: number[]): TrappingRainWaterStep[] => {
+    const steps: TrappingRainWaterStep[] = [];
+    
+    if (height.length === 0) {
+      steps.push({
+        line: 1,
+        variables: {},
+        water: [],
+        totalWater: 0,
+        description: 'Empty array, return 0',
+        result: 0,
+        isSolution: true,
+      });
+      return steps;
+    }
 
-    // Initial state
+    let left = 0;
+    let right = height.length - 1;
+    let maxLeft = 0;
+    let maxRight = 0;
+    let totalWater = 0;
+    const water: number[] = new Array(height.length).fill(0);
+
+    // Initial state - Step 1: Check if empty (line 1), Steps 2-4: Initialize (lines 2-4)
     steps.push({
-      line: 1,
+      line: 2,
       variables: {},
-      hashMap: {},
-      description: 'Initialize empty hash map',
+      left: 0,
+      right: height.length - 1,
+      maxLeft: 0,
+      maxRight: 0,
+      water: [...water],
+      totalWater: 0,
+      description: `Initialize: left = 0, right = ${height.length - 1}, maxLeft = 0, maxRight = 0, totalWater = 0`,
     });
 
-    for (let i = 0; i < nums.length; i++) {
-      const complement = target - nums[i];
-
-      // Current iteration
+    while (left < right) {
+      // Step 5: Main loop condition
       steps.push({
-        line: 2,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        hashMap: { ...map },
-        description: `Check element at index ${i}: ${nums[i]}`,
+        line: 5,
+        left,
+        right,
+        maxLeft,
+        maxRight,
+        water: [...water],
+        totalWater,
+        variables: {
+          left,
+          right,
+          'height[left]': height[left],
+          'height[right]': height[right],
+          maxLeft,
+          maxRight,
+        },
+        description: `Loop: left=${left} < right=${right}\nComparing heights at left=${left} (${height[left]}) and right=${right} (${height[right]})`,
       });
 
-      // Calculate complement
-      steps.push({
-        line: 3,
-        i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Calculate complement: ${target} - ${nums[i]} = ${complement}`,
-      });
-
-      // Check if complement exists - PAUSE AT IF STATEMENT
-      steps.push({
-        line: 4,
-        i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Checking if complement ${complement} exists in map...`,
-      });
-
-      // If complement found
-      if (map[complement] !== undefined) {
-        steps.push({
-          line: 4,
-          i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Condition: TRUE ✓\nComplement ${complement} found at index ${map[complement]}!\nSolution: nums[${map[complement]}] + nums[${i}] = ${target}`,
-          isSolution: true,
-          result: [map[complement], i],
-        });
-        // Return statement
+      // Step 6: Compare heights
+      if (height[left] < height[right]) {
+        // Process left side
         steps.push({
           line: 6,
-          i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Returning solution: [${map[complement]}, ${i}]`,
-          isSolution: true,
-          result: [map[complement], i],
+          left,
+          right,
+          maxLeft,
+          maxRight,
+          water: [...water],
+          totalWater,
+          variables: {
+            left,
+            right,
+            'height[left]': height[left],
+            'height[right]': height[right],
+            maxLeft,
+            maxRight,
+          },
+          description: `height[left] (${height[left]}) < height[right] (${height[right]})\nProcessing left side...`,
         });
-        break;
+
+        // Step 7: Check maxLeft
+        if (height[left] >= maxLeft) {
+          steps.push({
+            line: 7,
+            left,
+            right,
+            maxLeft,
+            maxRight,
+            water: [...water],
+            totalWater,
+            variables: {
+              left,
+              right,
+              'height[left]': height[left],
+              maxLeft,
+            },
+            description: `height[left] (${height[left]}) >= maxLeft (${maxLeft})\nUpdate maxLeft to ${height[left]}`,
+          });
+          maxLeft = height[left];
+        } else {
+          // Step 9: Calculate trapped water on left
+          const trapped = maxLeft - height[left];
+          water[left] = trapped;
+          totalWater += trapped;
+          
+          steps.push({
+            line: 9,
+            left,
+            right,
+            maxLeft,
+            maxRight,
+            water: [...water],
+            totalWater,
+            variables: {
+              left,
+              right,
+              'height[left]': height[left],
+              maxLeft,
+              trapped,
+            },
+            description: `height[left] (${height[left]}) < maxLeft (${maxLeft})\nTrapped water at index ${left} = ${maxLeft} - ${height[left]} = ${trapped}\nTotal water: ${totalWater}`,
+          });
+        }
+
+        // Step 10: Move left pointer
+        steps.push({
+          line: 10,
+          left: left + 1,
+          right,
+          maxLeft,
+          maxRight,
+          water: [...water],
+          totalWater,
+          variables: {
+            left: left + 1,
+            right,
+            maxLeft,
+            maxRight,
+          },
+          description: `Move left pointer: left = ${left + 1}`,
+        });
+        left++;
+      } else {
+        // Process right side
+        steps.push({
+          line: 6,
+          left,
+          right,
+          maxLeft,
+          maxRight,
+          water: [...water],
+          totalWater,
+          variables: {
+            left,
+            right,
+            'height[left]': height[left],
+            'height[right]': height[right],
+            maxLeft,
+            maxRight,
+          },
+          description: `height[left] (${height[left]}) >= height[right] (${height[right]})\nProcessing right side...`,
+        });
+
+        // Step 11: Check maxRight
+        if (height[right] >= maxRight) {
+          steps.push({
+            line: 11,
+            left,
+            right,
+            maxLeft,
+            maxRight,
+            water: [...water],
+            totalWater,
+            variables: {
+              left,
+              right,
+              'height[right]': height[right],
+              maxRight,
+            },
+            description: `height[right] (${height[right]}) >= maxRight (${maxRight})\nUpdate maxRight to ${height[right]}`,
+          });
+          maxRight = height[right];
+        } else {
+          // Step 13: Calculate trapped water on right
+          const trapped = maxRight - height[right];
+          water[right] = trapped;
+          totalWater += trapped;
+          
+          steps.push({
+            line: 13,
+            left,
+            right,
+            maxLeft,
+            maxRight,
+            water: [...water],
+            totalWater,
+            variables: {
+              left,
+              right,
+              'height[right]': height[right],
+              maxRight,
+              trapped,
+            },
+            description: `height[right] (${height[right]}) < maxRight (${maxRight})\nTrapped water at index ${right} = ${maxRight} - ${height[right]} = ${trapped}\nTotal water: ${totalWater}`,
+          });
+        }
+
+        // Step 14: Move right pointer
+        steps.push({
+          line: 14,
+          left,
+          right: right - 1,
+          maxLeft,
+          maxRight,
+          water: [...water],
+          totalWater,
+          variables: {
+            left,
+            right: right - 1,
+            maxLeft,
+            maxRight,
+          },
+          description: `Move right pointer: right = ${right - 1}`,
+        });
+        right--;
       }
-
-      // If complement NOT found
-      steps.push({
-        line: 4,
-        i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Condition: FALSE ✗\nComplement ${complement} not found in map.\nCurrent map: {${Object.entries(map).map(([k, v]) => `${k}: ${v}`).join(', ') || 'empty'}}\nContinue to add ${nums[i]} to map...`,
-      });
-
-      // Add to map
-      steps.push({
-        line: 5,
-        i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Add ${nums[i]} to map with index ${i}`,
-      });
-
-      map[nums[i]] = i;
-
-      // Updated map state
-      steps.push({
-        line: 5,
-        i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Map updated: {${Object.entries(map)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(', ')}}`,
-      });
     }
+
+    // Step 15: Final solution
+    steps.push({
+      line: 15,
+      left,
+      right,
+      maxLeft,
+      maxRight,
+      water: [...water],
+      totalWater,
+      variables: {
+        left,
+        right,
+        totalWater,
+      },
+      description: `Loop complete: left (${left}) >= right (${right})\nTotal trapped rainwater: ${totalWater}`,
+      isSolution: true,
+      result: totalWater,
+    });
 
     return steps;
   };
 
-  const [steps, setSteps] = useState<TwoSumStep[]>(() => generateSteps(nums, target));
+  const [steps, setSteps] = useState<TrappingRainWaterStep[]>(() => generateSteps(height));
 
   useEffect(() => {
-    setSteps(generateSteps(nums, target));
-  }, [nums, target]);
+    setSteps(generateSteps(height));
+  }, [height]);
 
   const {
     currentStep,
@@ -180,21 +319,18 @@ export const TwoSumVisualizationPage = () => {
 
   useEffect(() => {
     reset();
-  }, [nums, target, reset]);
+  }, [height, reset]);
 
   const handleCustomInput = () => {
     try {
-      const numArray = customNums
+      const heightArray = customHeight
         .split(',')
-        .map((n) => parseInt(n.trim()))
-        .filter((n) => !isNaN(n));
-      const targetNum = parseInt(customTarget);
-      if (numArray.length >= 2 && !isNaN(targetNum)) {
-        setNums(numArray);
-        setTarget(targetNum);
+        .map((h) => parseInt(h.trim()))
+        .filter((h) => !isNaN(h) && h >= 0);
+      if (heightArray.length >= 1) {
+        setHeight(heightArray);
         setShowCustomInput(false);
-        setCustomNums('');
-        setCustomTarget('');
+        setCustomHeight('');
       }
     } catch (e) {
       console.error('Invalid input');
@@ -203,24 +339,17 @@ export const TwoSumVisualizationPage = () => {
 
   const customInputFields = [
     {
-      label: 'Array (comma-separated)',
-      value: customNums,
-      onChange: setCustomNums,
-      placeholder: '2, 7, 11, 15',
-    },
-    {
-      label: 'Target',
-      value: customTarget,
-      onChange: setCustomTarget,
-      placeholder: '9',
-      type: 'number',
+      label: 'Height Array (comma-separated)',
+      value: customHeight,
+      onChange: setCustomHeight,
+      placeholder: '0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1',
     },
   ];
 
   const highlightedLine = useMemo(
     () => getHighlightedLine(currentStepData.line, language, questionId),
     [currentStepData.line, language, questionId]
-  );
+  ) as number;
 
   // Safety check
   if (!steps || steps.length === 0 || !currentStepData) {
@@ -240,13 +369,17 @@ export const TwoSumVisualizationPage = () => {
     );
   }
 
+  // Calculate max height for visualization scaling
+  const maxHeight = Math.max(...height, 1);
+  const water = currentStepData.water || [];
+
   // Extract visualization content
   const visualizationContent = (
     <>
-      {/* Success Message - Fixed at top - Only show at return step */}
+      {/* Success Message - Fixed at top - Only show at final step */}
       {currentStepData.isSolution && 
-       currentStepData.result && 
-       currentStepData.line === 6 && (
+       currentStepData.result !== undefined && 
+       currentStepData.line === 15 && (
         <Box
           sx={{
             position: 'sticky',
@@ -261,12 +394,12 @@ export const TwoSumVisualizationPage = () => {
           <SolutionMessage
             result={currentStepData.result}
             timeComplexity="O(n)"
-            spaceComplexity="O(n)"
+            spaceComplexity="O(1)"
           />
         </Box>
       )}
 
-      {/* Array Visualization */}
+      {/* Rain Water Visualization */}
       <Box
         sx={{
           display: 'flex',
@@ -275,19 +408,21 @@ export const TwoSumVisualizationPage = () => {
           justifyContent: 'flex-start',
           gap: 2,
           p: 2,
+          pt: 3,
           minHeight: '50vh',
         }}
       >
-        {/* Array */}
-        <Box sx={{ textAlign: 'center', width: '100%' }}>
+        {/* Bar Chart Visualization */}
+        <Box sx={{ width: '100%', px: 2, mt: 2 }}>
           <Typography
             sx={{
               fontSize: '0.75rem',
               color: themeColors.textSecondary,
-              mb: 0.5,
+              mb: 1.5,
+              textAlign: 'center',
             }}
           >
-            Array{' '}
+            Elevation Map{' '}
             <Box
               component="code"
               sx={{
@@ -299,20 +434,27 @@ export const TwoSumVisualizationPage = () => {
                 fontFamily: 'monospace',
               }}
             >
-              nums
+              height
             </Box>
+            {' '}and Trapped Water
           </Typography>
+          
+          {/* Bar Chart Container */}
           <Box
             sx={{
               display: 'flex',
-              flexWrap: 'wrap',
-              gap: { xs: 0.75, sm: 1 },
-              mt: 1,
-              justifyContent: 'center',
-              maxWidth: '100%',
+              alignItems: 'flex-end',
+              justifyContent: 'flex-start',
+              gap: { xs: 0.5, sm: 1 },
+              height: 250,
+              position: 'relative',
+              borderBottom: `2px solid ${themeColors.borderLight}`,
+              borderLeft: `2px solid ${themeColors.borderLight}`,
+              px: 1,
+              pb: 0,
+              pt: 1,
               overflowX: 'auto',
               overflowY: 'hidden',
-              pb: 1,
               '&::-webkit-scrollbar': {
                 height: '6px',
               },
@@ -329,122 +471,165 @@ export const TwoSumVisualizationPage = () => {
               },
             }}
           >
-            {nums.map((num: number, idx: number) => {
-              // Dynamic sizing based on array length
-              const arrayLength = nums.length;
-              const isLargeArray = arrayLength > 15;
-              const boxSize = isLargeArray ? 35 : 40;
-              const fontSize = isLargeArray ? '0.8125rem' : '0.9375rem';
-              const indexFontSize = isLargeArray ? '0.6rem' : '0.65rem';
+            {height.map((h: number, idx: number) => {
+              const isLeftPointer = currentStepData.left === idx;
+              const isRightPointer = currentStepData.right === idx;
+              const trappedWater = water[idx] || 0;
               
+              // Calculate heights for visualization
+              const barHeight = (h / maxHeight) * 180;
+              const waterHeight = (trappedWater / maxHeight) * 180;
+              
+              // Dynamic sizing based on array length
+              const arrayLength = height.length;
+              const isLargeArray = arrayLength > 20;
+              const barWidth = isLargeArray ? 35 : arrayLength > 15 ? 40 : 45;
+              const fontSize = isLargeArray ? '0.6rem' : '0.65rem';
+              const indexFontSize = isLargeArray ? '0.55rem' : '0.6rem';
+
               return (
-              <Box
-                key={idx}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
                 <Box
+                  key={idx}
                   sx={{
-                    width: boxSize,
-                    height: boxSize,
-                    minWidth: boxSize,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 1,
-                    border:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '2px solid #10b981'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `2px solid ${themeColors.primary}`
-                        : `1px solid ${themeColors.borderLight}`,
-                    backgroundColor:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '#10b98133'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `${themeColors.primary}1a`
-                        : 'transparent',
-                    transition: 'all 0.3s ease',
-                    flexShrink: 0,
+                    position: 'relative',
                   }}
                 >
-                  <Typography
+                  {/* Water layer (on top) */}
+                  {trappedWater > 0 && (
+                    <Box
+                      sx={{
+                        width: barWidth,
+                        height: waterHeight,
+                        backgroundColor: '#3b82f6',
+                        opacity: 0.7,
+                        border: '1px solid #2563eb',
+                        borderRadius: '2px 2px 0 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'absolute',
+                        bottom: barHeight,
+                        zIndex: 2,
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      {waterHeight > 15 && (
+                        <Typography
+                          sx={{
+                            fontSize: fontSize,
+                            fontWeight: 600,
+                            color: themeColors.white,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {trappedWater}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                  
+                  {/* Elevation bar */}
+                  <Box
                     sx={{
-                      fontSize: fontSize,
-                      fontWeight: 700,
-                      color: themeColors.white,
-                      wordBreak: 'break-word',
-                      textAlign: 'center',
-                      px: 0.25,
+                      width: barWidth,
+                      height: barHeight,
+                      minHeight: h > 0 ? 10 : 2,
+                      backgroundColor:
+                        isLeftPointer || isRightPointer
+                          ? themeColors.primary
+                          : themeColors.borderLight,
+                      border:
+                        isLeftPointer || isRightPointer
+                          ? `2px solid ${themeColors.primary}`
+                          : `1px solid ${themeColors.borderLight}`,
+                      borderRadius: '2px 2px 0 0',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      transition: 'all 0.3s ease',
+                      zIndex: 1,
                     }}
                   >
-                    {num}
+                    {barHeight > 20 && (
+                      <Typography
+                        sx={{
+                          fontSize: fontSize,
+                          fontWeight: 700,
+                          color: themeColors.white,
+                          mb: 0.5,
+                        }}
+                      >
+                        {h}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  {/* Index label */}
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      fontSize: indexFontSize,
+                      color: themeColors.textSecondary,
+                    }}
+                  >
+                    {idx}
                   </Typography>
+                  
+                  {/* Pointer labels */}
+                  {isLeftPointer && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        color: themeColors.primary,
+                      }}
+                    >
+                      left
+                    </Typography>
+                  )}
+                  {isRightPointer && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        color: themeColors.primary,
+                      }}
+                    >
+                      right
+                    </Typography>
+                  )}
                 </Box>
-                <Typography
-                  sx={{
-                    mt: 0.25,
-                    fontSize: indexFontSize,
-                    color: themeColors.textSecondary,
-                  }}
-                >
-                  {idx}
-                </Typography>
-                {currentStepData.i === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    i
-                  </Typography>
-                )}
-                {currentStepData.j === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    j
-                  </Typography>
-                )}
-              </Box>
-            );
+              );
             })}
           </Box>
         </Box>
 
-        {/* Target */}
-        <Box sx={{ textAlign: 'center' }}>
+        {/* Total Water Display */}
+        <Box sx={{ textAlign: 'center', mt: 1 }}>
           <Typography
             sx={{
-              fontSize: '0.75rem',
+              fontSize: '0.875rem',
               color: themeColors.textSecondary,
+              mb: 0.5,
             }}
           >
-            Target ={' '}
-            <Box
-              component="code"
-              sx={{
-                backgroundColor: themeColors.inputBgDark,
-                px: 0.75,
-                py: 0.25,
-                borderRadius: 0.5,
-                fontSize: '0.65rem',
-                fontFamily: 'monospace',
-              }}
-            >
-              {target}
-            </Box>
+            Total Trapped Water:
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: themeColors.primary,
+              fontFamily: 'monospace',
+            }}
+          >
+            {currentStepData.totalWater !== undefined ? currentStepData.totalWater : 0}
           </Typography>
         </Box>
       </Box>
@@ -469,6 +654,7 @@ export const TwoSumVisualizationPage = () => {
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             gap: 1.5,
+            mt: 1.5,
           }}
         >
           {/* Variables */}
@@ -546,7 +732,7 @@ export const TwoSumVisualizationPage = () => {
             </Box>
           </Box>
 
-          {/* Hash Map */}
+          {/* Water Array */}
           <Box>
             <Typography
               sx={{
@@ -556,7 +742,7 @@ export const TwoSumVisualizationPage = () => {
                 mb: 0.75,
               }}
             >
-              Hash Map
+              Trapped Water Array
             </Typography>
             <Box
               sx={{
@@ -571,11 +757,9 @@ export const TwoSumVisualizationPage = () => {
               }}
             >
               <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
-                {Object.keys(currentStepData.hashMap).length > 0
-                  ? `{${Object.entries(currentStepData.hashMap)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}}`
-                  : '{}'}
+                {water.length > 0
+                  ? `[${water.map((w, i) => (w > 0 ? `${i}:${w}` : '0')).join(', ')}]`
+                  : '[]'}
               </Typography>
             </Box>
           </Box>
@@ -803,7 +987,7 @@ export const TwoSumVisualizationPage = () => {
   return (
     <>
       <VisualizationLayout
-        title="2 Sum"
+        title="Trapping Rain Water"
         questionId={questionId}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -821,4 +1005,5 @@ export const TwoSumVisualizationPage = () => {
   );
 };
 
-export default TwoSumVisualizationPage;
+export default TrappingRainWaterVisualizationPage;
+

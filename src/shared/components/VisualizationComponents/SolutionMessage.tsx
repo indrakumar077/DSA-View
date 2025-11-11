@@ -3,7 +3,7 @@ import { themeColors } from '../../../theme';
 import { ComplexityInfo } from './ComplexityInfo';
 
 interface SolutionMessageProps {
-  result: number[];
+  result: number | number[] | any;
   timeComplexity?: string;
   spaceComplexity?: string;
 }
@@ -13,25 +13,35 @@ export const SolutionMessage = ({
   timeComplexity = 'O(n)',
   spaceComplexity = 'O(n)',
 }: SolutionMessageProps) => {
+  // Format result based on its type
+  const formatResult = () => {
+    if (Array.isArray(result)) {
+      return `Indices: [${result.join(', ')}]`;
+    } else if (typeof result === 'number') {
+      return `Max Profit: ${result}`;
+    } else {
+      return `Result: ${JSON.stringify(result)}`;
+    }
+  };
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 3,
+        gap: 2,
         alignItems: 'center',
         width: '100%',
-        mb: 2,
       }}
     >
       <Box
         sx={{
           backgroundColor: '#10b981',
           color: themeColors.white,
-          px: 4,
-          py: 2,
+          px: 3,
+          py: 1.5,
           borderRadius: 2,
-          fontSize: '1rem',
+          fontSize: '0.9375rem',
           fontWeight: 700,
           boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
           textAlign: 'center',
@@ -40,11 +50,11 @@ export const SolutionMessage = ({
           maxWidth: '500px',
           '@keyframes pulse': {
             '0%, 100%': { transform: 'scale(1)' },
-            '50%': { transform: 'scale(1.05)' },
+            '50%': { transform: 'scale(1.02)' },
           },
         }}
       >
-        🎉 Solution Found! Indices: [{result.join(', ')}]
+        🎉 Solution Found! {formatResult()}
       </Box>
       <ComplexityInfo timeComplexity={timeComplexity} spaceComplexity={spaceComplexity} />
     </Box>

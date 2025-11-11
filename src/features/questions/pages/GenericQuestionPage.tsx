@@ -19,6 +19,8 @@ import { ResizableSplitPane } from '../../../shared/components/ResizableSplitPan
 import { QuestionData, Language } from '../../../types';
 import { VisualizationControlProvider, useVisualizationControls } from '../../../core/contexts/VisualizationControlContext';
 import { TwoSumVisualizationPage } from '../visualizations/TwoSum/TwoSumVisualizationPage';
+import { BestTimeToBuyAndSellStockVisualizationPage } from '../visualizations/BestTimeToBuyAndSellStock/BestTimeToBuyAndSellStockVisualizationPage';
+import { TrappingRainWaterVisualizationPage } from '../visualizations/TrappingRainWater/TrappingRainWaterVisualizationPage';
 import { ROUTES } from '../../../constants';
 
 interface GenericQuestionPageProps {
@@ -49,6 +51,10 @@ const GenericQuestionPageContent = ({ question }: GenericQuestionPageProps) => {
     switch (question.id) { // question.id === question.leetcodeNumber
       case 1: // LeetCode #1
         return <TwoSumVisualizationPage />;
+      case 121: // LeetCode #121
+        return <BestTimeToBuyAndSellStockVisualizationPage />;
+      case 42: // LeetCode #42
+        return <TrappingRainWaterVisualizationPage />;
       default:
         return null;
     }

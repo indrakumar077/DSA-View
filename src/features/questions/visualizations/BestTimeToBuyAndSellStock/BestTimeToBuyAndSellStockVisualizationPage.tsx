@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { themeColors } from '../../../../theme';
 import { useVisualizationState } from '../../../../core/hooks/useVisualizationState';
 import { useQuestionData } from '../../../../core/hooks/useQuestionData';
@@ -12,156 +12,199 @@ import { StepDescription, SolutionMessage } from '../../../../shared/components/
 import { VisualizationStep, Language } from '../../../../types';
 import { DEFAULT_LANGUAGE } from '../../../../constants';
 
-interface TwoSumStep extends VisualizationStep {
+interface StockStep extends VisualizationStep {
   i?: number;
-  j?: number;
-  complement?: number;
-  hashMap: Record<number, number>;
+  minPrice?: number;
+  buyDay?: number; // Day index where we would buy (minPrice day)
+  profit?: number;
+  maxProfit?: number;
   isSolution?: boolean;
-  result?: number[];
+  result?: number;
 }
 
-export const TwoSumVisualizationPage = () => {
+export const BestTimeToBuyAndSellStockVisualizationPage = () => {
   const question = useQuestionData();
-  const questionId = question?.id || 1;
+  const questionId = question?.id || 121;
   
   // Get default input from question data
-  const defaultNums: number[] = (question?.defaultInput as any)?.nums || [2, 7, 11, 15];
-  const defaultTarget: number = (question?.defaultInput as any)?.target || 9;
+  const defaultPrices: number[] = (question?.defaultInput as any)?.prices || [7, 1, 5, 3, 6, 4];
   
-  const [nums, setNums] = useState<number[]>(defaultNums);
-  const [target, setTarget] = useState<number>(defaultTarget);
+  const [prices, setPrices] = useState<number[]>(defaultPrices);
   const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customNums, setCustomNums] = useState('');
-  const [customTarget, setCustomTarget] = useState('');
+  const [customPrices, setCustomPrices] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
   // Update when question changes
   useEffect(() => {
     if (question?.defaultInput) {
       const input = question.defaultInput as any;
-      if (input.nums && Array.isArray(input.nums)) {
-        setNums(input.nums);
-      }
-      if (input.target !== undefined && typeof input.target === 'number') {
-        setTarget(input.target);
+      if (input.prices && Array.isArray(input.prices)) {
+        setPrices(input.prices);
       }
     }
   }, [question]);
 
   // Generate animation steps
-  const generateSteps = (nums: number[], target: number): TwoSumStep[] => {
-    const steps: TwoSumStep[] = [];
-    const map: Record<number, number> = {};
+  const generateSteps = (prices: number[]): StockStep[] => {
+    const steps: StockStep[] = [];
+    let minPrice = Infinity;
+    let maxProfit = 0;
+    let buyDay = -1; // Track the day index where we would buy
 
     // Initial state
     steps.push({
       line: 1,
       variables: {},
-      hashMap: {},
-      description: 'Initialize empty hash map',
+      description: 'Initialize minPrice to infinity and maxProfit to 0',
+      minPrice: Infinity,
+      maxProfit: 0,
+      buyDay: -1,
     });
 
-    for (let i = 0; i < nums.length; i++) {
-      const complement = target - nums[i];
-
+    for (let i = 0; i < prices.length; i++) {
       // Current iteration
-      steps.push({
-        line: 2,
-        i,
-        variables: { i, 'nums[i]': nums[i] },
-        hashMap: { ...map },
-        description: `Check element at index ${i}: ${nums[i]}`,
-      });
-
-      // Calculate complement
       steps.push({
         line: 3,
         i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Calculate complement: ${target} - ${nums[i]} = ${complement}`,
+        minPrice,
+        maxProfit,
+        buyDay,
+        variables: { i, 'prices[i]': prices[i] },
+        description: `Day ${i}: Price = ${prices[i]}`,
       });
 
-      // Check if complement exists - PAUSE AT IF STATEMENT
+      // Check if current price is less than minPrice
       steps.push({
         line: 4,
         i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Checking if complement ${complement} exists in map...`,
+        minPrice,
+        maxProfit,
+        buyDay,
+        variables: { i, 'prices[i]': prices[i] },
+        description: `Checking if prices[${i}] (${prices[i]}) < minPrice (${minPrice === Infinity ? 'infinity' : minPrice})...`,
       });
 
-      // If complement found
-      if (map[complement] !== undefined) {
+      // If current price is less than minPrice
+      if (prices[i] < minPrice) {
         steps.push({
           line: 4,
           i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Condition: TRUE ✓\nComplement ${complement} found at index ${map[complement]}!\nSolution: nums[${map[complement]}] + nums[${i}] = ${target}`,
-          isSolution: true,
-          result: [map[complement], i],
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `Condition: TRUE ✓\nprices[${i}] (${prices[i]}) < minPrice (${minPrice === Infinity ? 'infinity' : minPrice})\nUpdate minPrice to ${prices[i]} (Buy on Day ${i})`,
         });
-        // Return statement
+        
+        minPrice = prices[i];
+        buyDay = i;
+        
         steps.push({
-          line: 6,
+          line: 5,
           i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Returning solution: [${map[complement]}, ${i}]`,
-          isSolution: true,
-          result: [map[complement], i],
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `minPrice updated to ${minPrice} (Best buy day: Day ${buyDay})`,
         });
-        break;
+      } else {
+        steps.push({
+          line: 4,
+          i,
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `Condition: FALSE ✗\nprices[${i}] (${prices[i]}) >= minPrice (${minPrice})\nKeep minPrice as ${minPrice} (Buy on Day ${buyDay})`,
+        });
       }
 
-      // If complement NOT found
+      // Calculate profit
+      const profit = prices[i] - minPrice;
       steps.push({
-        line: 4,
+        line: 6,
         i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Condition: FALSE ✗\nComplement ${complement} not found in map.\nCurrent map: {${Object.entries(map).map(([k, v]) => `${k}: ${v}`).join(', ') || 'empty'}}\nContinue to add ${nums[i]} to map...`,
+        minPrice,
+        buyDay,
+        profit,
+        maxProfit,
+        variables: { i, 'prices[i]': prices[i], profit },
+        description: `Calculate profit: prices[${i}] - minPrice = ${prices[i]} - ${minPrice} = ${profit}`,
       });
 
-      // Add to map
+      // Check if profit is greater than maxProfit
       steps.push({
-        line: 5,
+        line: 7,
         i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Add ${nums[i]} to map with index ${i}`,
+        minPrice,
+        buyDay,
+        profit,
+        maxProfit,
+        variables: { i, 'prices[i]': prices[i], profit },
+        description: `Checking if profit (${profit}) > maxProfit (${maxProfit})...`,
       });
 
-      map[nums[i]] = i;
-
-      // Updated map state
-      steps.push({
-        line: 5,
-        i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Map updated: {${Object.entries(map)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(', ')}}`,
-      });
+      // If profit is greater than maxProfit
+      if (profit > maxProfit) {
+        steps.push({
+          line: 7,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `Condition: TRUE ✓\nprofit (${profit}) > maxProfit (${maxProfit})\nUpdate maxProfit to ${profit}\nBest strategy: Buy on Day ${buyDay} (price ${minPrice}), Sell on Day ${i} (price ${prices[i]})`,
+        });
+        
+        maxProfit = profit;
+        
+        steps.push({
+          line: 8,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `maxProfit updated to ${maxProfit}`,
+        });
+      } else {
+        steps.push({
+          line: 7,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `Condition: FALSE ✗\nprofit (${profit}) <= maxProfit (${maxProfit})\nKeep maxProfit as ${maxProfit}`,
+        });
+      }
     }
+
+    // Final result
+    steps.push({
+      line: 9,
+      minPrice,
+      buyDay,
+      maxProfit,
+      variables: { maxProfit },
+      description: `Return maxProfit: ${maxProfit}`,
+      isSolution: true,
+      result: maxProfit,
+    });
 
     return steps;
   };
 
-  const [steps, setSteps] = useState<TwoSumStep[]>(() => generateSteps(nums, target));
+  const [steps, setSteps] = useState<StockStep[]>(() => generateSteps(prices));
 
   useEffect(() => {
-    setSteps(generateSteps(nums, target));
-  }, [nums, target]);
+    setSteps(generateSteps(prices));
+  }, [prices]);
 
   const {
     currentStep,
@@ -180,21 +223,18 @@ export const TwoSumVisualizationPage = () => {
 
   useEffect(() => {
     reset();
-  }, [nums, target, reset]);
+  }, [prices, reset]);
 
   const handleCustomInput = () => {
     try {
-      const numArray = customNums
+      const priceArray = customPrices
         .split(',')
-        .map((n) => parseInt(n.trim()))
-        .filter((n) => !isNaN(n));
-      const targetNum = parseInt(customTarget);
-      if (numArray.length >= 2 && !isNaN(targetNum)) {
-        setNums(numArray);
-        setTarget(targetNum);
+        .map((p) => parseInt(p.trim()))
+        .filter((p) => !isNaN(p) && p >= 0);
+      if (priceArray.length >= 1) {
+        setPrices(priceArray);
         setShowCustomInput(false);
-        setCustomNums('');
-        setCustomTarget('');
+        setCustomPrices('');
       }
     } catch (e) {
       console.error('Invalid input');
@@ -203,24 +243,17 @@ export const TwoSumVisualizationPage = () => {
 
   const customInputFields = [
     {
-      label: 'Array (comma-separated)',
-      value: customNums,
-      onChange: setCustomNums,
-      placeholder: '2, 7, 11, 15',
-    },
-    {
-      label: 'Target',
-      value: customTarget,
-      onChange: setCustomTarget,
-      placeholder: '9',
-      type: 'number',
+      label: 'Prices (comma-separated)',
+      value: customPrices,
+      onChange: setCustomPrices,
+      placeholder: '7, 1, 5, 3, 6, 4',
     },
   ];
 
   const highlightedLine = useMemo(
     () => getHighlightedLine(currentStepData.line, language, questionId),
     [currentStepData.line, language, questionId]
-  );
+  ) as number;
 
   // Safety check
   if (!steps || steps.length === 0 || !currentStepData) {
@@ -243,10 +276,10 @@ export const TwoSumVisualizationPage = () => {
   // Extract visualization content
   const visualizationContent = (
     <>
-      {/* Success Message - Fixed at top - Only show at return step */}
+      {/* Success Message - Fixed at top - Only show at final step */}
       {currentStepData.isSolution && 
-       currentStepData.result && 
-       currentStepData.line === 6 && (
+       currentStepData.result !== undefined && 
+       currentStepData.line === 9 && (
         <Box
           sx={{
             position: 'sticky',
@@ -261,12 +294,12 @@ export const TwoSumVisualizationPage = () => {
           <SolutionMessage
             result={currentStepData.result}
             timeComplexity="O(n)"
-            spaceComplexity="O(n)"
+            spaceComplexity="O(1)"
           />
         </Box>
       )}
 
-      {/* Array Visualization */}
+      {/* Prices Array Visualization */}
       <Box
         sx={{
           display: 'flex',
@@ -275,19 +308,21 @@ export const TwoSumVisualizationPage = () => {
           justifyContent: 'flex-start',
           gap: 2,
           p: 2,
+          pt: 3,
           minHeight: '50vh',
         }}
       >
-        {/* Array */}
-        <Box sx={{ textAlign: 'center', width: '100%' }}>
+        {/* Bar Chart Visualization */}
+        <Box sx={{ width: '100%', px: 2, mt: 2 }}>
           <Typography
             sx={{
               fontSize: '0.75rem',
               color: themeColors.textSecondary,
-              mb: 0.5,
+              mb: 1.5,
+              textAlign: 'center',
             }}
           >
-            Array{' '}
+            Stock Prices{' '}
             <Box
               component="code"
               sx={{
@@ -299,20 +334,26 @@ export const TwoSumVisualizationPage = () => {
                 fontFamily: 'monospace',
               }}
             >
-              nums
+              prices
             </Box>
           </Typography>
+          
+          {/* Bar Chart Container */}
           <Box
             sx={{
               display: 'flex',
-              flexWrap: 'wrap',
-              gap: { xs: 0.75, sm: 1 },
-              mt: 1,
-              justifyContent: 'center',
-              maxWidth: '100%',
+              alignItems: 'flex-end',
+              justifyContent: 'flex-start',
+              gap: { xs: 0.5, sm: 1 },
+              height: 180,
+              position: 'relative',
+              borderBottom: `2px solid ${themeColors.borderLight}`,
+              borderLeft: `2px solid ${themeColors.borderLight}`,
+              px: 1,
+              pb: 0,
+              pt: 1,
               overflowX: 'auto',
               overflowY: 'hidden',
-              pb: 1,
               '&::-webkit-scrollbar': {
                 height: '6px',
               },
@@ -329,127 +370,151 @@ export const TwoSumVisualizationPage = () => {
               },
             }}
           >
-            {nums.map((num: number, idx: number) => {
-              // Dynamic sizing based on array length
-              const arrayLength = nums.length;
-              const isLargeArray = arrayLength > 15;
-              const boxSize = isLargeArray ? 35 : 40;
-              const fontSize = isLargeArray ? '0.8125rem' : '0.9375rem';
-              const indexFontSize = isLargeArray ? '0.6rem' : '0.65rem';
+            {prices.map((price: number, idx: number) => {
+              const maxPrice = Math.max(...prices);
+              const minPrice = Math.min(...prices);
+              const priceRange = maxPrice - minPrice || 1;
+              // Clamp bar height to max 160px, min 20px (reduced from 180 to fit better)
+              const barHeight = Math.min(Math.max(((price - minPrice) / priceRange) * 140 + 20, 20), 160);
+              const isCurrentDay = currentStepData.i === idx;
+              const isSolutionDay = currentStepData.isSolution && currentStepData.i === idx;
               
+              // Check if this is the buy day or sell day
+              const buyDayIndex = currentStepData.buyDay !== undefined ? currentStepData.buyDay : -1;
+              const isBuyDay = buyDayIndex === idx && currentStepData.minPrice === price;
+              const isSellDay = isSolutionDay && currentStepData.profit !== undefined && currentStepData.profit > 0 && buyDayIndex >= 0;
+
+              // Dynamic sizing based on array length
+              const arrayLength = prices.length;
+              const isLargeArray = arrayLength > 20;
+              const barWidth = isLargeArray ? 35 : arrayLength > 15 ? 40 : 45;
+              const priceFontSize = isLargeArray ? '0.6rem' : '0.65rem';
+              const dayFontSize = isLargeArray ? '0.6rem' : '0.65rem';
+
               return (
-              <Box
-                key={idx}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
                 <Box
+                  key={idx}
                   sx={{
-                    width: boxSize,
-                    height: boxSize,
-                    minWidth: boxSize,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 1,
-                    border:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '2px solid #10b981'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `2px solid ${themeColors.primary}`
-                        : `1px solid ${themeColors.borderLight}`,
-                    backgroundColor:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '#10b98133'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `${themeColors.primary}1a`
-                        : 'transparent',
-                    transition: 'all 0.3s ease',
+                    position: 'relative',
+                    minWidth: barWidth,
+                    maxWidth: barWidth,
                     flexShrink: 0,
                   }}
                 >
+                  {/* Price label above bar */}
                   <Typography
                     sx={{
-                      fontSize: fontSize,
+                      fontSize: priceFontSize,
                       fontWeight: 700,
-                      color: themeColors.white,
-                      wordBreak: 'break-word',
+                      color: isCurrentDay || isBuyDay || isSellDay
+                        ? themeColors.primary
+                        : themeColors.textSecondary,
+                      mb: 0.25,
                       textAlign: 'center',
-                      px: 0.25,
+                      wordBreak: 'break-word',
+                      maxWidth: '100%',
+                      lineHeight: 1.2,
                     }}
                   >
-                    {num}
+                    {price}
                   </Typography>
+                  
+                  {/* Bar */}
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: `${barHeight}px`,
+                      minHeight: '20px',
+                      backgroundColor: isSellDay
+                        ? '#10b981'
+                        : isBuyDay
+                        ? '#f59e0b'
+                        : isCurrentDay
+                        ? themeColors.primary
+                        : themeColors.borderLight,
+                      borderRadius: '4px 4px 0 0',
+                      border: isCurrentDay || isBuyDay || isSellDay
+                        ? `2px solid ${isSellDay ? '#10b981' : isBuyDay ? '#f59e0b' : themeColors.primary}`
+                        : 'none',
+                      borderBottom: 'none',
+                      transition: 'all 0.3s ease',
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      pb: 0,
+                      boxShadow: isCurrentDay || isBuyDay || isSellDay
+                        ? `0 0 12px ${isSellDay ? '#10b98166' : isBuyDay ? '#f59e0b66' : themeColors.primary + '66'}`
+                        : 'none',
+                    }}
+                  />
+                  
+                  {/* Day label */}
+                  <Typography
+                    sx={{
+                      mt: 0.5,
+                      fontSize: dayFontSize,
+                      color: isCurrentDay || isBuyDay || isSellDay
+                        ? themeColors.primary
+                        : themeColors.textSecondary,
+                      fontWeight: isCurrentDay || isBuyDay || isSellDay ? 700 : 400,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    Day {idx}
+                  </Typography>
+                  
+                  {/* Indicators */}
+                  {isBuyDay && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.55rem',
+                        color: '#f59e0b',
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      BUY
+                    </Typography>
+                  )}
+                  {isSellDay && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.55rem',
+                        color: '#10b981',
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      SELL
+                    </Typography>
+                  )}
+                  {isCurrentDay && !isBuyDay && !isSellDay && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.55rem',
+                        color: themeColors.primary,
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      i
+                    </Typography>
+                  )}
                 </Box>
-                <Typography
-                  sx={{
-                    mt: 0.25,
-                    fontSize: indexFontSize,
-                    color: themeColors.textSecondary,
-                  }}
-                >
-                  {idx}
-                </Typography>
-                {currentStepData.i === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    i
-                  </Typography>
-                )}
-                {currentStepData.j === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    j
-                  </Typography>
-                )}
-              </Box>
-            );
+              );
             })}
           </Box>
         </Box>
-
-        {/* Target */}
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography
-            sx={{
-              fontSize: '0.75rem',
-              color: themeColors.textSecondary,
-            }}
-          >
-            Target ={' '}
-            <Box
-              component="code"
-              sx={{
-                backgroundColor: themeColors.inputBgDark,
-                px: 0.75,
-                py: 0.25,
-                borderRadius: 0.5,
-                fontSize: '0.65rem',
-                fontFamily: 'monospace',
-              }}
-            >
-              {target}
-            </Box>
-          </Typography>
-        </Box>
       </Box>
 
-      {/* Data Structures */}
+      {/* Variables and Info */}
       <Box
         sx={{
           flexShrink: 0,
@@ -469,6 +534,7 @@ export const TwoSumVisualizationPage = () => {
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             gap: 1.5,
+            mt: 1.5,
           }}
         >
           {/* Variables */}
@@ -546,7 +612,7 @@ export const TwoSumVisualizationPage = () => {
             </Box>
           </Box>
 
-          {/* Hash Map */}
+          {/* Tracking Values */}
           <Box>
             <Typography
               sx={{
@@ -556,7 +622,7 @@ export const TwoSumVisualizationPage = () => {
                 mb: 0.75,
               }}
             >
-              Hash Map
+              Tracking
             </Typography>
             <Box
               sx={{
@@ -570,13 +636,88 @@ export const TwoSumVisualizationPage = () => {
                 overflow: 'auto',
               }}
             >
-              <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
-                {Object.keys(currentStepData.hashMap).length > 0
-                  ? `{${Object.entries(currentStepData.hashMap)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}}`
-                  : '{}'}
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    backgroundColor: `${themeColors.primary}1a`,
+                    padding: '3px 8px',
+                    borderRadius: 0.75,
+                    border: `1px solid ${themeColors.primary}33`,
+                  }}
+                >
+                  <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                    minPrice:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: themeColors.white,
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {currentStepData.minPrice === Infinity ? '∞' : currentStepData.minPrice}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    backgroundColor: `${themeColors.primary}1a`,
+                    padding: '3px 8px',
+                    borderRadius: 0.75,
+                    border: `1px solid ${themeColors.primary}33`,
+                  }}
+                >
+                  <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                    maxProfit:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: currentStepData.isSolution ? '#10b981' : themeColors.white,
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {currentStepData.maxProfit ?? 0}
+                  </Typography>
+                </Box>
+                {currentStepData.profit !== undefined && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      backgroundColor: `${themeColors.primary}1a`,
+                      padding: '3px 8px',
+                      borderRadius: 0.75,
+                      border: `1px solid ${themeColors.primary}33`,
+                    }}
+                  >
+                    <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                      profit:
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: themeColors.white,
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {currentStepData.profit}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -605,7 +746,7 @@ export const TwoSumVisualizationPage = () => {
         >
           Approach
         </Typography>
-        <Paper
+        <Box
           sx={{
             backgroundColor: themeColors.inputBgDark,
             p: 3,
@@ -621,7 +762,7 @@ export const TwoSumVisualizationPage = () => {
           >
             {question.explanation.approach}
           </Typography>
-        </Paper>
+        </Box>
       </Box>
 
       {/* Step-by-Step Solution */}
@@ -637,8 +778,8 @@ export const TwoSumVisualizationPage = () => {
           Step-by-Step Solution
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {question.explanation.steps.map((step, index) => (
-            <Paper
+          {question.explanation.steps.map((step: string, index: number) => (
+            <Box
               key={index}
               sx={{
                 backgroundColor: themeColors.inputBgDark,
@@ -680,7 +821,7 @@ export const TwoSumVisualizationPage = () => {
               >
                 {step}
               </Typography>
-            </Paper>
+            </Box>
           ))}
         </Box>
       </Box>
@@ -698,7 +839,7 @@ export const TwoSumVisualizationPage = () => {
           Complexity Analysis
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Paper
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -725,8 +866,8 @@ export const TwoSumVisualizationPage = () => {
             >
               {question.explanation.timeComplexity}
             </Typography>
-          </Paper>
-          <Paper
+          </Box>
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -753,7 +894,7 @@ export const TwoSumVisualizationPage = () => {
             >
               {question.explanation.spaceComplexity}
             </Typography>
-          </Paper>
+          </Box>
         </Box>
       </Box>
     </Box>
@@ -777,7 +918,6 @@ export const TwoSumVisualizationPage = () => {
     </Box>
   );
 
-  // Code content
   const codeContent = (
     <CodeViewer
       questionId={questionId}
@@ -787,12 +927,10 @@ export const TwoSumVisualizationPage = () => {
       controls={
         <VisualizationControlBar
           isPlaying={isPlaying}
-          speed={speed}
-          currentStep={currentStep}
-          totalSteps={steps.length}
           onPlayPause={handlePlayPause}
           onPrevious={handlePrevious}
           onNext={handleNext}
+          speed={speed}
           onSpeedChange={setSpeed}
           onCustomInput={() => setShowCustomInput(true)}
         />
@@ -803,7 +941,7 @@ export const TwoSumVisualizationPage = () => {
   return (
     <>
       <VisualizationLayout
-        title="2 Sum"
+        title={question?.title || 'Best Time to Buy and Sell Stock'}
         questionId={questionId}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -816,9 +954,9 @@ export const TwoSumVisualizationPage = () => {
         onClose={() => setShowCustomInput(false)}
         onSubmit={handleCustomInput}
         fields={customInputFields}
+        title="Custom Input"
       />
     </>
   );
 };
 
-export default TwoSumVisualizationPage;
