@@ -1168,4 +1168,162 @@ export const questionsData: Record<number, QuestionData> = {
       },
     },
   },
+  11: {
+    id: 11,
+    slug: "container-with-most-water",
+    title: "Container With Most Water",
+    description:
+      "You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]).\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn the maximum amount of water a container can store.\n\nNotice that you may not slant the container.",
+    examples: [
+      {
+        input: "height = [1,8,6,2,5,4,8,3,7]",
+        output: "49",
+        explanation: "The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.",
+      },
+      {
+        input: "height = [1,1]",
+        output: "1",
+      },
+    ],
+    constraints: [
+      "n == height.length",
+      "2 ≤ n ≤ 10⁵",
+      "0 ≤ height[i] ≤ 10⁴",
+    ],
+    codes: {
+      [Language.PYTHON]: `def maxArea(height):
+    left = 0
+    right = len(height) - 1
+    maxWater = 0
+    while left < right:
+        width = right - left
+        currentWater = min(height[left], height[right]) * width
+        maxWater = max(maxWater, currentWater)
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    return maxWater`,
+      [Language.JAVA]: `public int maxArea(int[] height) {
+    int left = 0;
+    int right = height.length - 1;
+    int maxWater = 0;
+    while (left < right) {
+        int width = right - left;
+        int currentWater = Math.min(height[left], height[right]) * width;
+        maxWater = Math.max(maxWater, currentWater);
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    return maxWater;
+}`,
+      [Language.CPP]: `int maxArea(vector<int>& height) {
+    int left = 0;
+    int right = height.size() - 1;
+    int maxWater = 0;
+    while (left < right) {
+        int width = right - left;
+        int currentWater = min(height[left], height[right]) * width;
+        maxWater = max(maxWater, currentWater);
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    return maxWater;
+}`,
+      [Language.JAVASCRIPT]: `function maxArea(height) {
+    let left = 0;
+    let right = height.length - 1;
+    let maxWater = 0;
+    while (left < right) {
+        const width = right - left;
+        const currentWater = Math.min(height[left], height[right]) * width;
+        maxWater = Math.max(maxWater, currentWater);
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    return maxWater;
+}`,
+    },
+    explanation: {
+      approach:
+        "Use two pointers starting from both ends. Calculate the water area at each step and move the pointer with the smaller height. This ensures we explore all possible containers while maximizing the area.",
+      steps: [
+        "Initialize two pointers: left at start (0) and right at end (n-1).",
+        "While left < right, calculate the current water area: min(height[left], height[right]) * (right - left).",
+        "Update maxWater if current area is greater.",
+        "Move the pointer with the smaller height (if height[left] < height[right], move left++; otherwise move right--).",
+        "Continue until pointers meet.",
+        "Return maxWater.",
+      ],
+      timeComplexity: "O(n)",
+      spaceComplexity: "O(1)",
+    },
+    tags: [Tag.ARRAY, Tag.TWO_POINTERS, Tag.GREEDY],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 11,
+    hasVisualization: true,
+    defaultInput: {
+      height: [1, 8, 6, 2, 5, 4, 8, 3, 7],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // left = 0
+        2: 3, // right = len(height) - 1
+        3: 4, // maxWater = 0
+        4: 5, // while left < right:
+        5: 6, // width = right - left
+        6: 7, // currentWater = min(height[left], height[right]) * width
+        7: 8, // maxWater = max(maxWater, currentWater)
+        8: 9, // if height[left] < height[right]: left += 1
+        9: 11, // else: right -= 1
+        10: 12, // return maxWater
+      },
+      [Language.JAVA]: {
+        1: 2, // left = 0;
+        2: 3, // right = height.length - 1;
+        3: 4, // maxWater = 0;
+        4: 5, // while (left < right)
+        5: 6, // width = right - left;
+        6: 7, // currentWater = Math.min(...) * width;
+        7: 8, // maxWater = Math.max(maxWater, currentWater);
+        8: 9, // if (height[left] < height[right]) left++;
+        9: 12, // else right--;
+        10: 15, // return maxWater;
+      },
+      [Language.CPP]: {
+        1: 2, // left = 0;
+        2: 3, // right = height.size() - 1;
+        3: 4, // maxWater = 0;
+        4: 5, // while (left < right)
+        5: 6, // width = right - left;
+        6: 7, // currentWater = min(...) * width;
+        7: 8, // maxWater = max(maxWater, currentWater);
+        8: 9, // if (height[left] < height[right]) left++;
+        9: 12, // else right--;
+        10: 15, // return maxWater;
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // left = 0;
+        2: 3, // right = height.length - 1;
+        3: 4, // maxWater = 0;
+        4: 5, // while (left < right)
+        5: 6, // width = right - left;
+        6: 7, // currentWater = Math.min(...) * width;
+        7: 8, // maxWater = Math.max(maxWater, currentWater);
+        8: 9, // if (height[left] < height[right]) left++;
+        9: 12, // else right--;
+        10: 15, // return maxWater;
+      },
+    },
+  },
 };

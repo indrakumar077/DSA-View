@@ -6,6 +6,7 @@ import { MoveZeroesVisualizationPage } from './Array/MoveZeroes/MoveZeroesVisual
 import { MaximumSubarrayVisualizationPage } from './Array/MaximumSubarray/MaximumSubarrayVisualizationPage';
 import { ProductOfArrayExceptSelfVisualizationPage } from './Array/ProductOfArrayExceptSelf/ProductOfArrayExceptSelfVisualizationPage';
 import { ThreeSumVisualizationPage } from './Array/ThreeSum/ThreeSumVisualizationPage';
+import { ContainerWithMostWaterVisualizationPage } from './Array/ContainerWithMostWater/ContainerWithMostWaterVisualizationPage';
 
 /**
  * Registry mapping LeetCode question IDs to their visualization components.
@@ -31,6 +32,7 @@ export const visualizationRegistry: Record<number, ComponentType> = {
   53: MaximumSubarrayVisualizationPage, // Maximum Subarray
   238: ProductOfArrayExceptSelfVisualizationPage, // Product of Array Except Self
   15: ThreeSumVisualizationPage, // 3Sum
+  11: ContainerWithMostWaterVisualizationPage, // Container With Most Water
 };
 
 /**
