@@ -90,8 +90,8 @@ export const QuestionListPage = () => {
     // Search filter
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      const matchesTitle = q.title.toLowerCase().includes(query);
-      const matchesTags = q.tags.some((tag) => tag.toLowerCase().includes(query));
+      const matchesTitle = q.title?.toLowerCase().includes(query) ?? false;
+      const matchesTags = q.tags?.some((tag) => tag?.toLowerCase().includes(query)) ?? false;
       if (!matchesTitle && !matchesTags) {
         return false;
       }

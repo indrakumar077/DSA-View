@@ -10,6 +10,11 @@ import { ContainerWithMostWaterVisualizationPage } from './Array/ContainerWithMo
 import { SortColorsVisualizationPage } from './Array/SortColors/SortColorsVisualizationPage';
 import { MergeIntervalsVisualizationPage } from './Array/MergeIntervals/MergeIntervalsVisualizationPage';
 import { PascalsTriangleVisualizationPage } from './Array/PascalsTriangle/PascalsTriangleVisualizationPage';
+import { InsertIntervalVisualizationPage } from './Array/InsertInterval/InsertIntervalVisualizationPage';
+import { RotateImageVisualizationPage } from './Array/RotateImage/RotateImageVisualizationPage';
+import { SpiralMatrixVisualizationPage } from './Array/SpiralMatrix/SpiralMatrixVisualizationPage';
+import { SetMatrixZeroesVisualizationPage } from './Array/SetMatrixZeroes/SetMatrixZeroesVisualizationPage';
+import { NextPermutationVisualizationPage } from './Array/NextPermutation/NextPermutationVisualizationPage';
 
 /**
  * Registry mapping LeetCode question IDs to their visualization components.
@@ -39,6 +44,11 @@ export const visualizationRegistry: Record<number, ComponentType> = {
   75: SortColorsVisualizationPage, // Sort Colors
   56: MergeIntervalsVisualizationPage, // Merge Intervals
   118: PascalsTriangleVisualizationPage, // Pascal's Triangle
+  57: InsertIntervalVisualizationPage, // Insert Interval
+  48: RotateImageVisualizationPage, // Rotate Image
+  54: SpiralMatrixVisualizationPage, // Spiral Matrix
+  73: SetMatrixZeroesVisualizationPage, // Set Matrix Zeroes
+  31: NextPermutationVisualizationPage, // Next Permutation
 };
 
 /**

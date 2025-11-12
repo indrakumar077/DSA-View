@@ -1,7 +1,7 @@
 // Question data for Easy Array questions with visualizations
 // Import the type from types/index.ts to maintain single source of truth
-import { QuestionData } from '../types';
-import { Difficulty, Topic, Tag, Language } from '../constants/enums';
+import { QuestionData } from "../types";
+import { Difficulty, Topic, Tag, Language } from "../constants/enums";
 
 // Re-export for convenience
 export type { QuestionData };
@@ -128,10 +128,10 @@ export const questionsData: Record<number, QuestionData> = {
         3: 4, // int complement = target - nums[i];
         // Step 4: Check if complement exists in the hash map
         4: 5, // if (numMap.containsKey(complement)) {
-        // Step 5: Add current number to map with its index
-        5: 6, // numMap.put(nums[i], i);
-        // Step 6: Return statement when solution found
-        6: 6, // return new int[]{numMap.get(complement), i};
+        // Step 5: Return statement when solution found
+        5: 6, // return new int[]{numMap.get(complement), i};
+        // Step 6: Add current number to map with its index
+        6: 8, // numMap.put(nums[i], i);
       },
       [Language.CPP]: {
         // Step 1: Initialize empty hash map to store number-index pairs
@@ -142,10 +142,10 @@ export const questionsData: Record<number, QuestionData> = {
         3: 4, // int complement = target - nums[i];
         // Step 4: Check if complement exists in the hash map
         4: 5, // if (numMap.find(complement) != numMap.end()) {
-        // Step 5: Add current number to map with its index
-        5: 7, // numMap[nums[i]] = i;
-        // Step 6: Return statement when solution found
-        6: 6, // return {numMap[complement], i};
+        // Step 5: Return statement when solution found
+        5: 6, // return {numMap[complement], i};
+        // Step 6: Add current number to map with its index
+        6: 7, // numMap[nums[i]] = i;
       },
       [Language.JAVASCRIPT]: {
         // Step 1: Initialize empty hash map to store number-index pairs
@@ -156,10 +156,10 @@ export const questionsData: Record<number, QuestionData> = {
         3: 4, // const complement = target - nums[i];
         // Step 4: Check if complement exists in the hash map
         4: 5, // if (numMap.has(complement)) {
-        // Step 5: Add current number to map with its index
-        5: 7, // numMap.set(nums[i], i);
-        // Step 6: Return statement when solution found
-        6: 6, // return [numMap.get(complement), i];
+        // Step 5: Return statement when solution found
+        5: 6, // return [numMap.get(complement), i];
+        // Step 6: Add current number to map with its index
+        6: 7, // numMap.set(nums[i], i);
       },
     },
   },
@@ -173,18 +173,17 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "prices = [7,1,5,3,6,4]",
         output: "5",
-        explanation: "Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.\nNote that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.",
+        explanation:
+          "Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.\nNote that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.",
       },
       {
         input: "prices = [7,6,4,3,1]",
         output: "0",
-        explanation: "In this case, no transactions are done and the max profit = 0.",
+        explanation:
+          "In this case, no transactions are done and the max profit = 0.",
       },
     ],
-    constraints: [
-      "1 ≤ prices.length ≤ 10⁵",
-      "0 ≤ prices[i] ≤ 10⁴",
-    ],
+    constraints: ["1 ≤ prices.length ≤ 10⁵", "0 ≤ prices[i] ≤ 10⁴"],
     codes: {
       [Language.PYTHON]: `def maxProfit(prices):
     minPrice = float('inf')
@@ -342,7 +341,8 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "height = [0,1,0,2,1,0,1,3,2,1,2,1]",
         output: "6",
-        explanation: "The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.",
+        explanation:
+          "The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.",
       },
       {
         input: "height = [4,2,0,3,2,5]",
@@ -609,17 +609,15 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "nums = [0,1,0,3,12]",
         output: "[1,3,12,0,0]",
-        explanation: "Move all zeros to the end while maintaining the order of non-zero elements.",
+        explanation:
+          "Move all zeros to the end while maintaining the order of non-zero elements.",
       },
       {
         input: "nums = [0]",
         output: "[0]",
       },
     ],
-    constraints: [
-      "1 ≤ nums.length ≤ 10⁴",
-      "-2³¹ ≤ nums[i] ≤ 2³¹ - 1",
-    ],
+    constraints: ["1 ≤ nums.length ≤ 10⁴", "-2³¹ ≤ nums[i] ≤ 2³¹ - 1"],
     codes: {
       [Language.PYTHON]: `def moveZeroes(nums):
     # Two-pointer approach
@@ -731,10 +729,7 @@ export const questionsData: Record<number, QuestionData> = {
         output: "23",
       },
     ],
-    constraints: [
-      "1 ≤ nums.length ≤ 10⁵",
-      "-10⁴ ≤ nums[i] ≤ 10⁴",
-    ],
+    constraints: ["1 ≤ nums.length ≤ 10⁵", "-10⁴ ≤ nums[i] ≤ 10⁴"],
     codes: {
       [Language.PYTHON]: `def maxSubArray(nums):
     maxSum = nums[0]
@@ -932,7 +927,7 @@ export const questionsData: Record<number, QuestionData> = {
         4: 8, // right = 1
         5: 9, // for i in range(n-1, -1, -1):
         6: 10, // result[i] *= right
-        7: 11, // return result
+        7: 12, // return result
       },
       [Language.JAVA]: {
         1: 4, // result[0] = 1;
@@ -973,7 +968,8 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "nums = [-1,0,1,2,-1,-4]",
         output: "[[-1,-1,2],[-1,0,1]]",
-        explanation: "nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0.\nnums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0.\nThe distinct triplets are [-1,0,1] and [-1,-1,2].\nNotice that the order of the output and the order of the triplets does not matter.",
+        explanation:
+          "nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0.\nnums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0.\nThe distinct triplets are [-1,0,1] and [-1,-1,2].\nNotice that the order of the output and the order of the triplets does not matter.",
       },
       {
         input: "nums = [0,1,1]",
@@ -986,10 +982,7 @@ export const questionsData: Record<number, QuestionData> = {
         explanation: "The only possible triplet sums up to 0.",
       },
     ],
-    constraints: [
-      "3 ≤ nums.length ≤ 3000",
-      "-10⁵ ≤ nums[i] ≤ 10⁵",
-    ],
+    constraints: ["3 ≤ nums.length ≤ 3000", "-10⁵ ≤ nums[i] ≤ 10⁵"],
     codes: {
       [Language.PYTHON]: `def threeSum(nums):
     nums.sort()
@@ -1112,59 +1105,71 @@ export const questionsData: Record<number, QuestionData> = {
     lineMappings: {
       [Language.PYTHON]: {
         1: 2, // nums.sort()
-        2: 5, // if i > 0 and nums[i] == nums[i-1]: continue
-        3: 6, // left, right = i+1, n-1
-        4: 7, // while left < right:
-        5: 8, // total = nums[i] + nums[left] + nums[right]
-        6: 10, // result.append([nums[i], nums[left], nums[right]])
-        7: 11, // while left < right and nums[left] == nums[left+1]: left += 1
-        8: 13, // while left < right and nums[right] == nums[right-1]: right -= 1
-        9: 15, // left += 1; right -= 1
-        10: 16, // elif total < 0: left += 1
-        11: 18, // else: right -= 1
-        12: 19, // return result
+        2: 3, // result = []
+        3: 4, // n = len(nums)
+        4: 5, // for i in range(n-2):
+        5: 6, // if i > 0 and nums[i] == nums[i-1]: continue
+        6: 7, // left, right = i+1, n-1
+        7: 8, // while left < right:
+        8: 9, // total = nums[i] + nums[left] + nums[right]
+        9: 11, // result.append([nums[i], nums[left], nums[right]])
+        10: 12, // while left < right and nums[left] == nums[left+1]: left += 1
+        11: 13, // while left < right and nums[right] == nums[right-1]: right -= 1
+        12: 14, // left += 1; right -= 1
+        13: 15, // elif total < 0: left += 1
+        14: 16, // else: right -= 1
+        15: 17, // return result
       },
       [Language.JAVA]: {
         1: 2, // Arrays.sort(nums);
-        2: 6, // if (i > 0 && nums[i] == nums[i-1]) continue;
-        3: 7, // int left = i+1, right = n-1;
-        4: 8, // while (left < right)
-        5: 9, // int total = nums[i] + nums[left] + nums[right];
-        6: 11, // result.add(Arrays.asList(...));
-        7: 12, // while (left < right && nums[left] == nums[left+1]) left++;
-        8: 13, // while (left < right && nums[right] == nums[right-1]) right--;
-        9: 15, // left++; right--;
-        10: 16, // else if (total < 0) left++;
-        11: 18, // else right--;
-        12: 22, // return result;
+        2: 3, // List<List<Integer>> result = new ArrayList<>();
+        3: 4, // int n = nums.length;
+        4: 5, // for (int i = 0; i < n-2; i++)
+        5: 6, // if (i > 0 && nums[i] == nums[i-1]) continue;
+        6: 7, // int left = i+1, right = n-1;
+        7: 8, // while (left < right)
+        8: 9, // int total = nums[i] + nums[left] + nums[right];
+        9: 11, // result.add(Arrays.asList(...));
+        10: 12, // while (left < right && nums[left] == nums[left+1]) left++;
+        11: 13, // while (left < right && nums[right] == nums[right-1]) right--;
+        12: 14, // left++; right--;
+        13: 16, // else if (total < 0) left++;
+        14: 18, // else right--;
+        15: 23, // return result;
       },
       [Language.CPP]: {
         1: 2, // sort(nums.begin(), nums.end());
-        2: 6, // if (i > 0 && nums[i] == nums[i-1]) continue;
-        3: 7, // int left = i+1, right = n-1;
-        4: 8, // while (left < right)
-        5: 9, // int total = nums[i] + nums[left] + nums[right];
-        6: 11, // result.push_back({...});
-        7: 12, // while (left < right && nums[left] == nums[left+1]) left++;
-        8: 13, // while (left < right && nums[right] == nums[right-1]) right--;
-        9: 15, // left++; right--;
-        10: 16, // else if (total < 0) left++;
-        11: 18, // else right--;
-        12: 21, // return result;
+        2: 3, // vector<vector<int>> result;
+        3: 4, // int n = nums.size();
+        4: 5, // for (int i = 0; i < n-2; i++)
+        5: 6, // if (i > 0 && nums[i] == nums[i-1]) continue;
+        6: 7, // int left = i+1, right = n-1;
+        7: 8, // while (left < right)
+        8: 9, // int total = nums[i] + nums[left] + nums[right];
+        9: 11, // result.push_back({...});
+        10: 12, // while (left < right && nums[left] == nums[left+1]) left++;
+        11: 13, // while (left < right && nums[right] == nums[right-1]) right--;
+        12: 14, // left++; right--;
+        13: 16, // else if (total < 0) left++;
+        14: 18, // else right--;
+        15: 21, // return result;
       },
       [Language.JAVASCRIPT]: {
         1: 2, // nums.sort((a, b) => a - b);
-        2: 6, // if (i > 0 && nums[i] === nums[i-1]) continue;
-        3: 7, // let left = i+1, right = n-1;
-        4: 8, // while (left < right)
-        5: 9, // const total = nums[i] + nums[left] + nums[right];
-        6: 11, // result.push([nums[i], nums[left], nums[right]]);
-        7: 12, // while (left < right && nums[left] === nums[left+1]) left++;
-        8: 13, // while (left < right && nums[right] === nums[right-1]) right--;
-        9: 15, // left++; right--;
-        10: 16, // else if (total < 0) left++;
-        11: 18, // else right--;
-        12: 21, // return result;
+        2: 3, // const result = [];
+        3: 4, // const n = nums.length;
+        4: 5, // for (let i = 0; i < n-2; i++)
+        5: 6, // if (i > 0 && nums[i] === nums[i-1]) continue;
+        6: 7, // let left = i+1, right = n-1;
+        7: 8, // while (left < right)
+        8: 9, // const total = nums[i] + nums[left] + nums[right];
+        9: 11, // result.push([nums[i], nums[left], nums[right]]);
+        10: 12, // while (left < right && nums[left] === nums[left+1]) left++;
+        11: 13, // while (left < right && nums[right] === nums[right-1]) right--;
+        12: 14, // left++; right--;
+        13: 16, // else if (total < 0) left++;
+        14: 18, // else right--;
+        15: 21, // return result;
       },
     },
   },
@@ -1178,18 +1183,15 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "height = [1,8,6,2,5,4,8,3,7]",
         output: "49",
-        explanation: "The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.",
+        explanation:
+          "The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.",
       },
       {
         input: "height = [1,1]",
         output: "1",
       },
     ],
-    constraints: [
-      "n == height.length",
-      "2 ≤ n ≤ 10⁵",
-      "0 ≤ height[i] ≤ 10⁴",
-    ],
+    constraints: ["n == height.length", "2 ≤ n ≤ 10⁵", "0 ≤ height[i] ≤ 10⁴"],
     codes: {
       [Language.PYTHON]: `def maxArea(height):
     left = 0
@@ -1285,8 +1287,8 @@ export const questionsData: Record<number, QuestionData> = {
         6: 7, // currentWater = min(height[left], height[right]) * width
         7: 8, // maxWater = max(maxWater, currentWater)
         8: 9, // if height[left] < height[right]: left += 1
-        9: 11, // else: right -= 1
-        10: 12, // return maxWater
+        9: 12, // else: right -= 1
+        10: 13, // return maxWater
       },
       [Language.JAVA]: {
         1: 2, // left = 0;
@@ -1336,7 +1338,8 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "nums = [2,0,2,1,1,0]",
         output: "[0,0,1,1,2,2]",
-        explanation: "Sort the array so that all 0s come first, then 1s, then 2s.",
+        explanation:
+          "Sort the array so that all 0s come first, then 1s, then 2s.",
       },
       {
         input: "nums = [2,0,1]",
@@ -1511,7 +1514,8 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "intervals = [[1,3],[2,6],[8,10],[15,18]]",
         output: "[[1,6],[8,10],[15,18]]",
-        explanation: "Since intervals [1,3] and [2,6] overlap, merge them into [1,6].",
+        explanation:
+          "Since intervals [1,3] and [2,6] overlap, merge them into [1,6].",
       },
       {
         input: "intervals = [[1,4],[4,5]]",
@@ -1642,7 +1646,12 @@ export const questionsData: Record<number, QuestionData> = {
     leetcodeNumber: 56,
     hasVisualization: true,
     defaultInput: {
-      intervals: [[1, 3], [2, 6], [8, 10], [15, 18]],
+      intervals: [
+        [1, 3],
+        [2, 6],
+        [8, 10],
+        [15, 18],
+      ],
     },
     lineMappings: {
       [Language.PYTHON]: {
@@ -1699,16 +1708,15 @@ export const questionsData: Record<number, QuestionData> = {
       {
         input: "numRows = 5",
         output: "[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]",
-        explanation: "Each row is built from the previous row by adding adjacent elements.",
+        explanation:
+          "Each row is built from the previous row by adding adjacent elements.",
       },
       {
         input: "numRows = 1",
         output: "[[1]]",
       },
     ],
-    constraints: [
-      "1 ≤ numRows ≤ 30",
-    ],
+    constraints: ["1 ≤ numRows ≤ 30"],
     codes: {
       [Language.PYTHON]: `def generate(numRows):
     triangle = []
@@ -1827,6 +1835,1193 @@ export const questionsData: Record<number, QuestionData> = {
         5: 8, // row[j] = triangle[i-1][j-1] + triangle[i-1][j]
         6: 10, // triangle.push(row)
         7: 13, // return triangle
+      },
+    },
+  },
+  57: {
+    id: 57,
+    slug: "insert-interval",
+    title: "Insert Interval",
+    description:
+      "You are given an array of non-overlapping intervals intervals where intervals[i] = [starti, endi] represent the start and the end of the ith interval and intervals is sorted in ascending order by starti. You are also given an interval newInterval = [start, end] that represents the start and end of another interval.\n\nInsert newInterval into intervals such that intervals is still sorted in ascending order by starti and intervals still does not have any overlapping intervals (merge overlapping intervals if necessary).\n\nReturn intervals after the insertion.",
+    examples: [
+      {
+        input: "intervals = [[1,3],[6,9]], newInterval = [2,5]",
+        output: "[[1,5],[6,9]]",
+        explanation:
+          "Interval [2,5] overlaps with [1,3], so merge them into [1,5].",
+      },
+      {
+        input:
+          "intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]",
+        output: "[[1,2],[3,10],[12,16]]",
+        explanation:
+          "Interval [4,8] overlaps with [3,5] and [6,7], merge them all into [3,10].",
+      },
+    ],
+    constraints: [
+      "0 ≤ intervals.length ≤ 10⁴",
+      "intervals[i].length == 2",
+      "0 ≤ starti ≤ endi ≤ 10⁵",
+      "intervals is sorted by starti in ascending order.",
+      "newInterval.length == 2",
+      "0 ≤ start ≤ end ≤ 10⁵",
+    ],
+    codes: {
+      [Language.PYTHON]: `def insert(intervals, newInterval):
+    result = []
+    i = 0
+    n = len(intervals)
+    
+    # Add all intervals before newInterval
+    while i < n and intervals[i][1] < newInterval[0]:
+        result.append(intervals[i])
+        i += 1
+    
+    # Merge overlapping intervals
+    while i < n and intervals[i][0] <= newInterval[1]:
+        newInterval[0] = min(newInterval[0], intervals[i][0])
+        newInterval[1] = max(newInterval[1], intervals[i][1])
+        i += 1
+    
+    result.append(newInterval)
+    
+    # Add remaining intervals
+    while i < n:
+        result.append(intervals[i])
+        i += 1
+    
+    return result`,
+      [Language.JAVA]: `public int[][] insert(int[][] intervals, int[] newInterval) {
+    List<int[]> result = new ArrayList<>();
+    int i = 0;
+    int n = intervals.length;
+    
+    // Add all intervals before newInterval
+    while (i < n && intervals[i][1] < newInterval[0]) {
+        result.add(intervals[i]);
+        i++;
+    }
+    
+    // Merge overlapping intervals
+    while (i < n && intervals[i][0] <= newInterval[1]) {
+        newInterval[0] = Math.min(newInterval[0], intervals[i][0]);
+        newInterval[1] = Math.max(newInterval[1], intervals[i][1]);
+        i++;
+    }
+    
+    result.add(newInterval);
+    
+    // Add remaining intervals
+    while (i < n) {
+        result.add(intervals[i]);
+        i++;
+    }
+    
+    return result.toArray(new int[result.size()][]);
+}`,
+      [Language.CPP]: `vector<vector<int>> insert(vector<vector<int>>& intervals, vector<int>& newInterval) {
+    vector<vector<int>> result;
+    int i = 0;
+    int n = intervals.size();
+    
+    // Add all intervals before newInterval
+    while (i < n && intervals[i][1] < newInterval[0]) {
+        result.push_back(intervals[i]);
+        i++;
+    }
+    
+    // Merge overlapping intervals
+    while (i < n && intervals[i][0] <= newInterval[1]) {
+        newInterval[0] = min(newInterval[0], intervals[i][0]);
+        newInterval[1] = max(newInterval[1], intervals[i][1]);
+        i++;
+    }
+    
+    result.push_back(newInterval);
+    
+    // Add remaining intervals
+    while (i < n) {
+        result.push_back(intervals[i]);
+        i++;
+    }
+    
+    return result;
+}`,
+      [Language.JAVASCRIPT]: `function insert(intervals, newInterval) {
+    const result = [];
+    let i = 0;
+    const n = intervals.length;
+    
+    // Add all intervals before newInterval
+    while (i < n && intervals[i][1] < newInterval[0]) {
+        result.push(intervals[i]);
+        i++;
+    }
+    
+    // Merge overlapping intervals
+    while (i < n && intervals[i][0] <= newInterval[1]) {
+        newInterval[0] = Math.min(newInterval[0], intervals[i][0]);
+        newInterval[1] = Math.max(newInterval[1], intervals[i][1]);
+        i++;
+    }
+    
+    result.push(newInterval);
+    
+    // Add remaining intervals
+    while (i < n) {
+        result.push(intervals[i]);
+        i++;
+    }
+    
+    return result;
+}`,
+    },
+    explanation: {
+      approach:
+        "Three-phase approach: 1) Add all intervals that end before newInterval starts, 2) Merge all overlapping intervals with newInterval, 3) Add the merged interval and remaining intervals.",
+      steps: [
+        "Initialize result array and index i = 0.",
+        "Phase 1: Add all intervals that end before newInterval starts (intervals[i][1] < newInterval[0]).",
+        "Phase 2: Merge all intervals that overlap with newInterval (intervals[i][0] <= newInterval[1]).",
+        "Update newInterval to cover all overlapping intervals: min(start) and max(end).",
+        "Add the merged newInterval to result.",
+        "Phase 3: Add all remaining intervals.",
+        "Return result.",
+      ],
+      timeComplexity: "O(n)",
+      spaceComplexity: "O(n)",
+    },
+    tags: [Tag.ARRAY],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 57,
+    hasVisualization: true,
+    defaultInput: {
+      intervals: [
+        [1, 3],
+        [6, 9],
+      ],
+      newInterval: [2, 5],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // result = []
+        2: 3, // i = 0
+        3: 4, // n = len(intervals)
+        4: 6, // while i < n and intervals[i][1] < newInterval[0]:
+        5: 7, // result.append(intervals[i])
+        6: 8, // i += 1
+        7: 10, // while i < n and intervals[i][0] <= newInterval[1]:
+        8: 11, // newInterval[0] = min(...)
+        9: 12, // newInterval[1] = max(...)
+        10: 13, // i += 1
+        11: 14, // result.append(newInterval)
+        12: 16, // while i < n: result.append(intervals[i])
+        13: 17, // i += 1
+        14: 19, // return result
+      },
+      [Language.JAVA]: {
+        1: 2, // List<int[]> result = new ArrayList<>();
+        2: 3, // int i = 0;
+        3: 4, // int n = intervals.length;
+        4: 7, // while (i < n && intervals[i][1] < newInterval[0])
+        5: 8, // result.add(intervals[i]);
+        6: 9, // i++;
+        7: 13, // while (i < n && intervals[i][0] <= newInterval[1])
+        8: 14, // newInterval[0] = Math.min(...)
+        9: 15, // newInterval[1] = Math.max(...)
+        10: 16, // i++;
+        11: 19, // result.add(newInterval);
+        12: 22, // while (i < n) result.add(intervals[i]);
+        13: 23, // result.add(intervals[i]);
+        14: 24, // i++;
+        15: 27, // return result.toArray(...)
+      },
+      [Language.CPP]: {
+        1: 2, // vector<vector<int>> result;
+        2: 3, // int i = 0;
+        3: 4, // int n = intervals.size();
+        4: 7, // while (i < n && intervals[i][1] < newInterval[0])
+        5: 8, // result.push_back(intervals[i]);
+        6: 9, // i++;
+        7: 13, // while (i < n && intervals[i][0] <= newInterval[1])
+        8: 14, // newInterval[0] = min(...)
+        9: 15, // newInterval[1] = max(...)
+        10: 16, // i++;
+        11: 19, // result.push_back(newInterval);
+        12: 22, // while (i < n) result.push_back(intervals[i]);
+        13: 23, // result.push_back(intervals[i]);
+        14: 24, // i++;
+        15: 27, // return result;
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // const result = [];
+        2: 3, // let i = 0;
+        3: 4, // const n = intervals.length;
+        4: 7, // while (i < n && intervals[i][1] < newInterval[0])
+        5: 8, // result.push(intervals[i]);
+        6: 9, // i++;
+        7: 13, // while (i < n && intervals[i][0] <= newInterval[1])
+        8: 14, // newInterval[0] = Math.min(...)
+        9: 15, // newInterval[1] = Math.max(...)
+        10: 16, // i++;
+        11: 19, // result.push(newInterval);
+        12: 22, // while (i < n) result.push(intervals[i]);
+        13: 23, // result.push(intervals[i]);
+        14: 24, // i++;
+        15: 27, // return result;
+      },
+    },
+  },
+  48: {
+    id: 48,
+    slug: "rotate-image",
+    title: "Rotate Image",
+    description:
+      "You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).\n\nYou have to rotate the image in-place, which means you have to modify the input 2D matrix directly. DO NOT allocate another 2D matrix and do the rotation.",
+    examples: [
+      {
+        input: "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
+        output: "[[7,4,1],[8,5,2],[9,6,3]]",
+        explanation: "Rotate the matrix 90 degrees clockwise.",
+      },
+      {
+        input: "matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]",
+        output: "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]",
+      },
+    ],
+    constraints: [
+      "n == matrix.length == matrix[i].length",
+      "1 ≤ n ≤ 20",
+      "-1000 ≤ matrix[i][j] ≤ 1000",
+    ],
+    codes: {
+      [Language.PYTHON]: `def rotate(matrix):
+    n = len(matrix)
+    
+    # Transpose matrix
+    for i in range(n):
+        for j in range(i, n):
+            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+    
+    # Reverse each row
+    for i in range(n):
+        matrix[i].reverse()`,
+      [Language.JAVA]: `public void rotate(int[][] matrix) {
+    int n = matrix.length;
+    
+    // Transpose matrix
+    for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
+            int temp = matrix[i][j];
+            matrix[i][j] = matrix[j][i];
+            matrix[j][i] = temp;
+        }
+    }
+    
+    // Reverse each row
+    for (int i = 0; i < n; i++) {
+        int left = 0, right = n - 1;
+        while (left < right) {
+            int temp = matrix[i][left];
+            matrix[i][left] = matrix[i][right];
+            matrix[i][right] = temp;
+            left++;
+            right--;
+        }
+    }
+}`,
+      [Language.CPP]: `void rotate(vector<vector<int>>& matrix) {
+    int n = matrix.size();
+    
+    // Transpose matrix
+    for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
+            swap(matrix[i][j], matrix[j][i]);
+        }
+    }
+    
+    // Reverse each row
+    for (int i = 0; i < n; i++) {
+        reverse(matrix[i].begin(), matrix[i].end());
+    }
+}`,
+      [Language.JAVASCRIPT]: `function rotate(matrix) {
+    const n = matrix.length;
+    
+    // Transpose matrix
+    for (let i = 0; i < n; i++) {
+        for (let j = i; j < n; j++) {
+            [matrix[i][j], matrix[j][i]] = [matrix[j][i], matrix[i][j]];
+        }
+    }
+    
+    // Reverse each row
+    for (let i = 0; i < n; i++) {
+        matrix[i].reverse();
+    }
+}`,
+    },
+    explanation: {
+      approach:
+        "Two-step process: 1) Transpose the matrix (swap matrix[i][j] with matrix[j][i]), 2) Reverse each row. This achieves 90-degree clockwise rotation.",
+      steps: [
+        "Transpose the matrix: swap elements across the diagonal (matrix[i][j] ↔ matrix[j][i]).",
+        "For each row, reverse the elements.",
+        "The combination of transpose and row reversal gives 90-degree clockwise rotation.",
+      ],
+      timeComplexity: "O(n²)",
+      spaceComplexity: "O(1)",
+    },
+    tags: [Tag.ARRAY, Tag.MATH, Tag.MATRIX],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 48,
+    hasVisualization: true,
+    defaultInput: {
+      matrix: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // n = len(matrix)
+        2: 5, // for i in range(n): (transpose phase)
+        3: 7, // matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j] (swap)
+        5: 10, // for i in range(n): (reverse phase)
+        6: 11, // matrix[i].reverse()
+      },
+      [Language.JAVA]: {
+        1: 2, // int n = matrix.length;
+        2: 5, // for (int i = 0; i < n; i++) (transpose)
+        3: 9, // swap: matrix[j][i] = temp (completes swap)
+        5: 14, // for (int i = 0; i < n; i++) (reverse)
+        6: 16, // while (left < right) reverse
+      },
+      [Language.CPP]: {
+        1: 2, // int n = matrix.size();
+        2: 5, // for (int i = 0; i < n; i++) (transpose)
+        3: 7, // swap(matrix[i][j], matrix[j][i])
+        5: 12, // for (int i = 0; i < n; i++) (reverse)
+        6: 13, // reverse(matrix[i].begin(), matrix[i].end())
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // const n = matrix.length;
+        2: 5, // for (let i = 0; i < n; i++) (transpose)
+        3: 7, // [matrix[i][j], matrix[j][i]] = [matrix[j][i], matrix[i][j]]
+        5: 12, // for (let i = 0; i < n; i++) (reverse)
+        6: 13, // matrix[i].reverse()
+      },
+    },
+  },
+  54: {
+    id: 54,
+    slug: "spiral-matrix",
+    title: "Spiral Matrix",
+    description:
+      "Given an m x n matrix, return all elements of the matrix in spiral order.",
+    examples: [
+      {
+        input: "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
+        output: "[1,2,3,6,9,8,7,4,5]",
+        explanation:
+          "Spiral order: top row → right column → bottom row (reverse) → left column (reverse) → center.",
+      },
+      {
+        input: "matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]",
+        output: "[1,2,3,4,8,12,11,10,9,5,6,7]",
+      },
+    ],
+    constraints: [
+      "m == matrix.length",
+      "n == matrix[i].length",
+      "1 ≤ m, n ≤ 10",
+      "-100 ≤ matrix[i][j] ≤ 100",
+    ],
+    codes: {
+      [Language.PYTHON]: `def spiralOrder(matrix):
+    result = []
+    if not matrix:
+        return result
+    
+    top, bottom = 0, len(matrix) - 1
+    left, right = 0, len(matrix[0]) - 1
+    
+    while top <= bottom and left <= right:
+        # Traverse right
+        for j in range(left, right + 1):
+            result.append(matrix[top][j])
+        top += 1
+        
+        # Traverse down
+        for i in range(top, bottom + 1):
+            result.append(matrix[i][right])
+        right -= 1
+        
+        # Traverse left
+        if top <= bottom:
+            for j in range(right, left - 1, -1):
+                result.append(matrix[bottom][j])
+            bottom -= 1
+        
+        # Traverse up
+        if left <= right:
+            for i in range(bottom, top - 1, -1):
+                result.append(matrix[i][left])
+            left += 1
+    
+    return result`,
+      [Language.JAVA]: `public List<Integer> spiralOrder(int[][] matrix) {
+    List<Integer> result = new ArrayList<>();
+    if (matrix.length == 0) return result;
+    
+    int top = 0, bottom = matrix.length - 1;
+    int left = 0, right = matrix[0].length - 1;
+    
+    while (top <= bottom && left <= right) {
+        // Traverse right
+        for (int j = left; j <= right; j++) {
+            result.add(matrix[top][j]);
+        }
+        top++;
+        
+        // Traverse down
+        for (int i = top; i <= bottom; i++) {
+            result.add(matrix[i][right]);
+        }
+        right--;
+        
+        // Traverse left
+        if (top <= bottom) {
+            for (int j = right; j >= left; j--) {
+                result.add(matrix[bottom][j]);
+            }
+            bottom--;
+        }
+        
+        // Traverse up
+        if (left <= right) {
+            for (int i = bottom; i >= top; i--) {
+                result.add(matrix[i][left]);
+            }
+            left++;
+        }
+    }
+    
+    return result;
+}`,
+      [Language.CPP]: `vector<int> spiralOrder(vector<vector<int>>& matrix) {
+    vector<int> result;
+    if (matrix.empty()) return result;
+    
+    int top = 0, bottom = matrix.size() - 1;
+    int left = 0, right = matrix[0].size() - 1;
+    
+    while (top <= bottom && left <= right) {
+        // Traverse right
+        for (int j = left; j <= right; j++) {
+            result.push_back(matrix[top][j]);
+        }
+        top++;
+        
+        // Traverse down
+        for (int i = top; i <= bottom; i++) {
+            result.push_back(matrix[i][right]);
+        }
+        right--;
+        
+        // Traverse left
+        if (top <= bottom) {
+            for (int j = right; j >= left; j--) {
+                result.push_back(matrix[bottom][j]);
+            }
+            bottom--;
+        }
+        
+        // Traverse up
+        if (left <= right) {
+            for (int i = bottom; i >= top; i--) {
+                result.push_back(matrix[i][left]);
+            }
+            left++;
+        }
+    }
+    
+    return result;
+}`,
+      [Language.JAVASCRIPT]: `function spiralOrder(matrix) {
+    const result = [];
+    if (matrix.length === 0) return result;
+    
+    let top = 0, bottom = matrix.length - 1;
+    let left = 0, right = matrix[0].length - 1;
+    
+    while (top <= bottom && left <= right) {
+        // Traverse right
+        for (let j = left; j <= right; j++) {
+            result.push(matrix[top][j]);
+        }
+        top++;
+        
+        // Traverse down
+        for (let i = top; i <= bottom; i++) {
+            result.push(matrix[i][right]);
+        }
+        right--;
+        
+        // Traverse left
+        if (top <= bottom) {
+            for (let j = right; j >= left; j--) {
+                result.push(matrix[bottom][j]);
+            }
+            bottom--;
+        }
+        
+        // Traverse up
+        if (left <= right) {
+            for (let i = bottom; i >= top; i--) {
+                result.push(matrix[i][left]);
+            }
+            left++;
+        }
+    }
+    
+    return result;
+}`,
+    },
+    explanation: {
+      approach:
+        "Use four boundaries (top, bottom, left, right) and traverse in spiral order: right → down → left → up, shrinking boundaries after each direction.",
+      steps: [
+        "Initialize boundaries: top=0, bottom=m-1, left=0, right=n-1.",
+        "While boundaries are valid:",
+        "  - Traverse right: top row from left to right, then top++.",
+        "  - Traverse down: right column from top to bottom, then right--.",
+        "  - Traverse left: bottom row from right to left (if top <= bottom), then bottom--.",
+        "  - Traverse up: left column from bottom to top (if left <= right), then left++.",
+        "Return result array.",
+      ],
+      timeComplexity: "O(m × n)",
+      spaceComplexity: "O(1) excluding output array",
+    },
+    tags: [Tag.ARRAY, Tag.MATRIX, Tag.SIMULATION],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 54,
+    hasVisualization: true,
+    defaultInput: {
+      matrix: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 1, // def spiralOrder(matrix):
+        2: 2, // result = []
+        3: 3, // if not matrix:
+        4: 4, // return result
+        6: 6, // top, bottom = 0, len(matrix) - 1
+        7: 7, // left, right = 0, len(matrix[0]) - 1
+        9: 9, // while top <= bottom and left <= right:
+        11: 11, // for j in range(left, right + 1):
+        12: 12, // result.append(matrix[top][j])
+        13: 13, // top += 1
+        16: 16, // for i in range(top, bottom + 1):
+        17: 17, // result.append(matrix[i][right])
+        18: 18, // right -= 1
+        21: 21, // if top <= bottom:
+        22: 22, // for j in range(right, left - 1, -1):
+        23: 23, // result.append(matrix[bottom][j])
+        24: 24, // bottom -= 1
+        27: 27, // if left <= right:
+        28: 28, // for i in range(bottom, top - 1, -1):
+        29: 29, // result.append(matrix[i][left])
+        30: 30, // left += 1
+        32: 32, // return result
+      },
+      [Language.JAVA]: {
+        1: 1, // public List<Integer> spiralOrder(int[][] matrix) {
+        2: 2, // List<Integer> result = new ArrayList<>();
+        3: 3, // if (matrix.length == 0) return result;
+        4: 3, // return result (same line)
+        6: 5, // int top = 0, bottom = matrix.length - 1;
+        7: 6, // int left = 0, right = matrix[0].length - 1;
+        9: 8, // while (top <= bottom && left <= right) {
+        11: 10, // for (int j = left; j <= right; j++) {
+        12: 11, // result.add(matrix[top][j]);
+        13: 13, // top++;
+        16: 16, // for (int i = top; i <= bottom; i++) {
+        17: 17, // result.add(matrix[i][right]);
+        18: 19, // right--;
+        21: 22, // if (top <= bottom) {
+        22: 23, // for (int j = right; j >= left; j--) {
+        23: 24, // result.add(matrix[bottom][j]);
+        24: 26, // bottom--;
+        27: 30, // if (left <= right) {
+        28: 31, // for (int i = bottom; i >= top; i--) {
+        29: 32, // result.add(matrix[i][left]);
+        30: 34, // left++;
+        32: 38, // return result;
+      },
+      [Language.CPP]: {
+        1: 1, // vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        2: 2, // vector<int> result;
+        3: 3, // if (matrix.empty()) return result;
+        4: 3, // return result (same line)
+        6: 5, // int top = 0, bottom = matrix.size() - 1;
+        7: 6, // int left = 0, right = matrix[0].size() - 1;
+        9: 8, // while (top <= bottom && left <= right) {
+        11: 10, // for (int j = left; j <= right; j++) {
+        12: 11, // result.push_back(matrix[top][j]);
+        13: 13, // top++;
+        16: 16, // for (int i = top; i <= bottom; i++) {
+        17: 17, // result.push_back(matrix[i][right]);
+        18: 19, // right--;
+        21: 22, // if (top <= bottom) {
+        22: 23, // for (int j = right; j >= left; j--) {
+        23: 24, // result.push_back(matrix[bottom][j]);
+        24: 26, // bottom--;
+        27: 30, // if (left <= right) {
+        28: 31, // for (int i = bottom; i >= top; i--) {
+        29: 32, // result.push_back(matrix[i][left]);
+        30: 34, // left++;
+        32: 38, // return result;
+      },
+      [Language.JAVASCRIPT]: {
+        1: 1, // function spiralOrder(matrix) {
+        2: 2, // const result = [];
+        3: 3, // if (matrix.length === 0) return result;
+        4: 3, // return result (same line)
+        6: 5, // let top = 0, bottom = matrix.length - 1;
+        7: 6, // let left = 0, right = matrix[0].length - 1;
+        9: 8, // while (top <= bottom && left <= right) {
+        11: 10, // for (let j = left; j <= right; j++) {
+        12: 11, // result.push(matrix[top][j]);
+        13: 13, // top++;
+        16: 16, // for (let i = top; i <= bottom; i++) {
+        17: 17, // result.push(matrix[i][right]);
+        18: 19, // right--;
+        21: 22, // if (top <= bottom) {
+        22: 23, // for (let j = right; j >= left; j--) {
+        23: 24, // result.push(matrix[bottom][j]);
+        24: 26, // bottom--;
+        27: 30, // if (left <= right) {
+        28: 31, // for (let i = bottom; i >= top; i--) {
+        29: 32, // result.push(matrix[i][left]);
+        30: 34, // left++;
+        32: 38, // return result;
+      },
+    },
+  },
+  73: {
+    id: 73,
+    slug: "set-matrix-zeroes",
+    title: "Set Matrix Zeroes",
+    description:
+      "Given an m x n integer matrix matrix, if an element is 0, set its entire row and column to 0's.\n\nYou must do it in place.",
+    examples: [
+      {
+        input: "matrix = [[1,1,1],[1,0,1],[1,1,1]]",
+        output: "[[1,0,1],[0,0,0],[1,0,1]]",
+        explanation:
+          "Element at (1,1) is 0, so set row 1 and column 1 to zeros.",
+      },
+      {
+        input: "matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
+        output: "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]",
+      },
+    ],
+    constraints: [
+      "m == matrix.length",
+      "n == matrix[i].length",
+      "1 ≤ m, n ≤ 200",
+      "-2³¹ ≤ matrix[i][j] ≤ 2³¹ - 1",
+    ],
+    codes: {
+      [Language.PYTHON]: `def setZeroes(matrix):
+    m, n = len(matrix), len(matrix[0])
+    first_row_zero = any(matrix[0][j] == 0 for j in range(n))
+    first_col_zero = any(matrix[i][0] == 0 for i in range(m))
+    
+    # Mark zeros in first row and column
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][j] == 0:
+                matrix[i][0] = 0
+                matrix[0][j] = 0
+    
+    # Set zeros based on markers
+    for i in range(1, m):
+        for j in range(1, n):
+            if matrix[i][0] == 0 or matrix[0][j] == 0:
+                matrix[i][j] = 0
+    
+    # Set first row
+    if first_row_zero:
+        for j in range(n):
+            matrix[0][j] = 0
+    
+    # Set first column
+    if first_col_zero:
+        for i in range(m):
+            matrix[i][0] = 0`,
+      [Language.JAVA]: `public void setZeroes(int[][] matrix) {
+    int m = matrix.length, n = matrix[0].length;
+    boolean firstRowZero = false, firstColZero = false;
+    
+    // Check if first row has zero
+    for (int j = 0; j < n; j++) {
+        if (matrix[0][j] == 0) {
+            firstRowZero = true;
+            break;
+        }
+    }
+    
+    // Check if first column has zero
+    for (int i = 0; i < m; i++) {
+        if (matrix[i][0] == 0) {
+            firstColZero = true;
+            break;
+        }
+    }
+    
+    // Mark zeros in first row and column
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][j] == 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+    
+    // Set zeros based on markers
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    // Set first row
+    if (firstRowZero) {
+        for (int j = 0; j < n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
+    
+    // Set first column
+    if (firstColZero) {
+        for (int i = 0; i < m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+}`,
+      [Language.CPP]: `void setZeroes(vector<vector<int>>& matrix) {
+    int m = matrix.size(), n = matrix[0].size();
+    bool firstRowZero = false, firstColZero = false;
+    
+    // Check if first row has zero
+    for (int j = 0; j < n; j++) {
+        if (matrix[0][j] == 0) {
+            firstRowZero = true;
+            break;
+        }
+    }
+    
+    // Check if first column has zero
+    for (int i = 0; i < m; i++) {
+        if (matrix[i][0] == 0) {
+            firstColZero = true;
+            break;
+        }
+    }
+    
+    // Mark zeros in first row and column
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][j] == 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+    
+    // Set zeros based on markers
+    for (int i = 1; i < m; i++) {
+        for (int j = 1; j < n; j++) {
+            if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    // Set first row
+    if (firstRowZero) {
+        for (int j = 0; j < n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
+    
+    // Set first column
+    if (firstColZero) {
+        for (int i = 0; i < m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+}`,
+      [Language.JAVASCRIPT]: `function setZeroes(matrix) {
+    const m = matrix.length, n = matrix[0].length;
+    let firstRowZero = false, firstColZero = false;
+    
+    // Check if first row has zero
+    for (let j = 0; j < n; j++) {
+        if (matrix[0][j] === 0) {
+            firstRowZero = true;
+            break;
+        }
+    }
+    
+    // Check if first column has zero
+    for (let i = 0; i < m; i++) {
+        if (matrix[i][0] === 0) {
+            firstColZero = true;
+            break;
+        }
+    }
+    
+    // Mark zeros in first row and column
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][j] === 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    }
+    
+    // Set zeros based on markers
+    for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+            if (matrix[i][0] === 0 || matrix[0][j] === 0) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    // Set first row
+    if (firstRowZero) {
+        for (let j = 0; j < n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
+    
+    // Set first column
+    if (firstColZero) {
+        for (let i = 0; i < m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+}`,
+    },
+    explanation: {
+      approach:
+        "Use first row and first column as markers. First, check if first row/column should be zero. Then mark zeros in first row/column, set zeros based on markers, and finally set first row/column if needed.",
+      steps: [
+        "Check if first row and first column contain zeros (store flags).",
+        "Mark zeros: For each zero found at (i,j), mark matrix[i][0] = 0 and matrix[0][j] = 0.",
+        "Set zeros: For each cell (i,j), if matrix[i][0] == 0 or matrix[0][j] == 0, set matrix[i][j] = 0.",
+        "Set first row to zeros if flag is true.",
+        "Set first column to zeros if flag is true.",
+      ],
+      timeComplexity: "O(m × n)",
+      spaceComplexity: "O(1)",
+    },
+    tags: [Tag.ARRAY, Tag.HASH_TABLE, Tag.MATRIX],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 73,
+    hasVisualization: true,
+    defaultInput: {
+      matrix: [
+        [1, 1, 1],
+        [1, 0, 1],
+        [1, 1, 1],
+      ],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // m, n = len(matrix), len(matrix[0])
+        2: 3, // first_row_zero = any(...)
+        3: 4, // first_col_zero = any(...)
+        4: 7, // for i in range(1, m): (mark zeros)
+        5: 9, // if matrix[i][j] == 0: mark
+        6: 14, // for i in range(1, m): (set zeros)
+        7: 16, // if matrix[i][0] == 0 or matrix[0][j] == 0: set zero
+        8: 20, // if first_row_zero: set first row
+        9: 25, // if first_col_zero: set first column
+      },
+      [Language.JAVA]: {
+        1: 2, // int m = matrix.length, n = matrix[0].length;
+        2: 3, // boolean firstRowZero = false, firstColZero = false;
+        3: 6, // for (int j = 0; j < n; j++) - Check first row
+        4: 14, // for (int i = 0; i < m; i++) - Check first column
+        5: 22, // for (int i = 1; i < m; i++) - Mark zeros
+        6: 24, // if (matrix[i][j] == 0) - Mark
+        7: 32, // for (int i = 1; i < m; i++) - Set zeros
+        8: 34, // if (matrix[i][0] == 0 || matrix[0][j] == 0) - Set zero
+        9: 41, // if (firstRowZero) - Set first row
+        10: 48, // if (firstColZero) - Set first column
+      },
+      [Language.CPP]: {
+        1: 2, // int m = matrix.size(), n = matrix[0].size();
+        2: 3, // bool firstRowZero = false, firstColZero = false;
+        3: 6, // for (int j = 0; j < n; j++) - Check first row
+        4: 14, // for (int i = 0; i < m; i++) - Check first column
+        5: 22, // for (int i = 1; i < m; i++) - Mark zeros
+        6: 24, // if (matrix[i][j] == 0) - Mark
+        7: 32, // for (int i = 1; i < m; i++) - Set zeros
+        8: 34, // if (matrix[i][0] == 0 || matrix[0][j] == 0) - Set zero
+        9: 41, // if (firstRowZero) - Set first row
+        10: 48, // if (firstColZero) - Set first column
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // const m = matrix.length, n = matrix[0].length;
+        2: 3, // let firstRowZero = false, firstColZero = false;
+        3: 6, // for (let j = 0; j < n; j++) - Check first row
+        4: 14, // for (let i = 0; i < m; i++) - Check first column
+        5: 22, // for (let i = 1; i < m; i++) - Mark zeros
+        6: 24, // if (matrix[i][j] === 0) - Mark
+        7: 32, // for (let i = 1; i < m; i++) - Set zeros
+        8: 34, // if (matrix[i][0] === 0 || matrix[0][j] === 0) - Set zero
+        9: 41, // if (firstRowZero) - Set first row
+        10: 48, // if (firstColZero) - Set first column
+      },
+    },
+  },
+  31: {
+    id: 31,
+    slug: "next-permutation",
+    title: "Next Permutation",
+    description:
+      "A permutation of an array of integers is an arrangement of its members into a sequence or linear order.\n\nFor example, for arr = [1,2,3], the following are all the permutations of arr: [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1].\n\nThe next permutation of an array of integers is the next lexicographically greater permutation of its integer. More formally, if all the permutations of the array are sorted in one container according to their lexicographical order, then the next permutation of that array is the permutation that follows it in the sorted container. If such arrangement is not possible, the array must be rearranged as the lowest possible order (i.e., sorted in ascending order).\n\nFor example, the next permutation of arr = [1,2,3] is [1,3,2].\nSimilarly, the next permutation of arr = [2,3,1] is [3,1,2].\nWhile the next permutation of arr = [3,2,1] is [1,2,3] because [3,2,1] does not have a lexicographical larger rearrangement.\n\nGiven an array of integers nums, find the next permutation of nums.\n\nThe replacement must be in place and use only constant extra memory.",
+    examples: [
+      {
+        input: "nums = [1,2,3]",
+        output: "[1,3,2]",
+        explanation: "Next lexicographically greater permutation.",
+      },
+      {
+        input: "nums = [3,2,1]",
+        output: "[1,2,3]",
+        explanation: "No greater permutation, return lowest order.",
+      },
+      {
+        input: "nums = [1,1,5]",
+        output: "[1,5,1]",
+      },
+    ],
+    constraints: ["1 ≤ nums.length ≤ 100", "0 ≤ nums[i] ≤ 100"],
+    codes: {
+      [Language.PYTHON]: `def nextPermutation(nums):
+    n = len(nums)
+    i = n - 2
+    
+    # Find the largest index i such that nums[i] < nums[i+1]
+    while i >= 0 and nums[i] >= nums[i + 1]:
+        i -= 1
+    
+    if i >= 0:
+        # Find the largest index j such that nums[j] > nums[i]
+        j = n - 1
+        while nums[j] <= nums[i]:
+            j -= 1
+        # Swap nums[i] and nums[j]
+        nums[i], nums[j] = nums[j], nums[i]
+    
+    # Reverse the suffix starting at i+1
+    left, right = i + 1, n - 1
+    while left < right:
+        nums[left], nums[right] = nums[right], nums[left]
+        left += 1
+        right -= 1`,
+      [Language.JAVA]: `public void nextPermutation(int[] nums) {
+    int n = nums.length;
+    int i = n - 2;
+    
+    // Find the largest index i such that nums[i] < nums[i+1]
+    while (i >= 0 && nums[i] >= nums[i + 1]) {
+        i--;
+    }
+    
+    if (i >= 0) {
+        // Find the largest index j such that nums[j] > nums[i]
+        int j = n - 1;
+        while (nums[j] <= nums[i]) {
+            j--;
+        }
+        // Swap nums[i] and nums[j]
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+    
+    // Reverse the suffix starting at i+1
+    int left = i + 1, right = n - 1;
+    while (left < right) {
+        int temp = nums[left];
+        nums[left] = nums[right];
+        nums[right] = temp;
+        left++;
+        right--;
+    }
+}`,
+      [Language.CPP]: `void nextPermutation(vector<int>& nums) {
+    int n = nums.size();
+    int i = n - 2;
+    
+    // Find the largest index i such that nums[i] < nums[i+1]
+    while (i >= 0 && nums[i] >= nums[i + 1]) {
+        i--;
+    }
+    
+    if (i >= 0) {
+        // Find the largest index j such that nums[j] > nums[i]
+        int j = n - 1;
+        while (nums[j] <= nums[i]) {
+            j--;
+        }
+        // Swap nums[i] and nums[j]
+        swap(nums[i], nums[j]);
+    }
+    
+    // Reverse the suffix starting at i+1
+    int left = i + 1, right = n - 1;
+    while (left < right) {
+        swap(nums[left], nums[right]);
+        left++;
+        right--;
+    }
+}`,
+      [Language.JAVASCRIPT]: `function nextPermutation(nums) {
+    const n = nums.length;
+    let i = n - 2;
+    
+    // Find the largest index i such that nums[i] < nums[i+1]
+    while (i >= 0 && nums[i] >= nums[i + 1]) {
+        i--;
+    }
+    
+    if (i >= 0) {
+        // Find the largest index j such that nums[j] > nums[i]
+        let j = n - 1;
+        while (nums[j] <= nums[i]) {
+            j--;
+        }
+        // Swap nums[i] and nums[j]
+        [nums[i], nums[j]] = [nums[j], nums[i]];
+    }
+    
+    // Reverse the suffix starting at i+1
+    let left = i + 1, right = n - 1;
+    while (left < right) {
+        [nums[left], nums[right]] = [nums[right], nums[left]];
+        left++;
+        right--;
+    }
+}`,
+    },
+    explanation: {
+      approach:
+        "Three steps: 1) Find the largest index i where nums[i] < nums[i+1] (from right), 2) Find the largest index j where nums[j] > nums[i] and swap, 3) Reverse the suffix starting at i+1.",
+      steps: [
+        "Find pivot: Starting from right, find the largest index i where nums[i] < nums[i+1].",
+        "If no such i exists, the array is in descending order. Reverse entire array and return.",
+        "Find swap target: Find the largest index j (j > i) where nums[j] > nums[i].",
+        "Swap nums[i] and nums[j].",
+        "Reverse the suffix: Reverse all elements from index i+1 to the end.",
+      ],
+      timeComplexity: "O(n)",
+      spaceComplexity: "O(1)",
+    },
+    tags: [Tag.ARRAY, Tag.TWO_POINTERS],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 31,
+    hasVisualization: true,
+    defaultInput: {
+      nums: [1, 2, 3],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // n = len(nums)
+        2: 3, // i = n - 2
+        3: 6, // while i >= 0 and nums[i] >= nums[i + 1]:
+        4: 7, // i -= 1
+        5: 9, // if i >= 0:
+        6: 11, // j = n - 1
+        7: 12, // while nums[j] <= nums[i]:
+        8: 13, // j -= 1
+        9: 15, // nums[i], nums[j] = nums[j], nums[i]
+        10: 18, // left, right = i + 1, n - 1
+        11: 19, // while left < right: reverse
+        12: 20, // nums[left], nums[right] = nums[right], nums[left]
+        13: 21, // left += 1
+        14: 22, // right -= 1
+      },
+      [Language.JAVA]: {
+        1: 2, // int n = nums.length;
+        2: 3, // int i = n - 2;
+        3: 6, // while (i >= 0 && nums[i] >= nums[i + 1])
+        4: 7, // i--;
+        5: 10, // if (i >= 0)
+        6: 12, // int j = n - 1;
+        7: 13, // while (nums[j] <= nums[i])
+        8: 14, // j--;
+        9: 19, // nums[j] = temp; (swap complete)
+        10: 23, // int left = i + 1, right = n - 1;
+        11: 24, // while (left < right)
+        12: 27, // nums[right] = temp; (swap in reverse)
+        13: 28, // left++;
+        14: 29, // right--;
+      },
+      [Language.CPP]: {
+        1: 2, // int n = nums.size();
+        2: 3, // int i = n - 2;
+        3: 6, // while (i >= 0 && nums[i] >= nums[i + 1])
+        4: 7, // i--;
+        5: 10, // if (i >= 0)
+        6: 12, // int j = n - 1;
+        7: 13, // while (nums[j] <= nums[i])
+        8: 14, // j--;
+        9: 17, // swap(nums[i], nums[j]);
+        10: 21, // int left = i + 1, right = n - 1;
+        11: 22, // while (left < right)
+        12: 23, // swap(nums[left], nums[right]);
+        13: 24, // left++;
+        14: 25, // right--;
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // const n = nums.length;
+        2: 3, // let i = n - 2;
+        3: 6, // while (i >= 0 && nums[i] >= nums[i + 1])
+        4: 7, // i--;
+        5: 10, // if (i >= 0)
+        6: 12, // let j = n - 1;
+        7: 13, // while (nums[j] <= nums[i])
+        8: 14, // j--;
+        9: 17, // [nums[i], nums[j]] = [nums[j], nums[i]];
+        10: 21, // let left = i + 1, right = n - 1;
+        11: 22, // while (left < right)
+        12: 23, // [nums[left], nums[right]] = [nums[right], nums[left]];
+        13: 24, // left++;
+        14: 25, // right--;
       },
     },
   },
