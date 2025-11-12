@@ -1,167 +1,117 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
-import { themeColors } from '../../../../theme';
-import { useVisualizationState } from '../../../../core/hooks/useVisualizationState';
-import { useQuestionData } from '../../../../core/hooks/useQuestionData';
-import { getHighlightedLine } from '../../../../core/utils/codeHighlighting';
-import { VisualizationLayout } from '../../../../shared/layouts/VisualizationLayout';
-import { CodeViewer } from '../../../../shared/components/CodeViewer';
-import { VisualizationControlBar } from '../../../../shared/components/VisualizationControlBar';
-import { CustomInputDialog } from '../../../../shared/components/CustomInputDialog';
-import { StepDescription, SolutionMessage } from '../../../../shared/components/VisualizationComponents';
-import { VisualizationStep, Language } from '../../../../types';
-import { DEFAULT_LANGUAGE } from '../../../../constants';
+import { Box, Typography } from '@mui/material';
+import { themeColors } from '../../../../../theme';
+import { useVisualizationState } from '../../../../../core/hooks/useVisualizationState';
+import { useQuestionData } from '../../../../../core/hooks/useQuestionData';
+import { getHighlightedLine } from '../../../../../core/utils/codeHighlighting';
+import { VisualizationLayout } from '../../../../../shared/layouts/VisualizationLayout';
+import { CodeViewer } from '../../../../../shared/components/CodeViewer';
+import { VisualizationControlBar } from '../../../../../shared/components/VisualizationControlBar';
+import { CustomInputDialog } from '../../../../../shared/components/CustomInputDialog';
+import { StepDescription, SolutionMessage } from '../../../../../shared/components/VisualizationComponents';
+import { VisualizationStep, Language } from '../../../../../types';
+import { DEFAULT_LANGUAGE } from '../../../../../constants';
 
-interface TwoSumStep extends VisualizationStep {
+interface MaximumSubarrayStep extends VisualizationStep {
   i?: number;
-  j?: number;
-  complement?: number;
-  hashMap: Record<number, number>;
+  currentSum?: number;
+  maxSum?: number;
   isSolution?: boolean;
-  result?: number[];
+  result?: number;
 }
 
-export const TwoSumVisualizationPage = () => {
+export const MaximumSubarrayVisualizationPage = () => {
   const question = useQuestionData();
-  const questionId = question?.id || 1;
+  const questionId = question?.id || 53;
   
-  // Get default input from question data
-  const defaultNums: number[] = (question?.defaultInput as any)?.nums || [2, 7, 11, 15];
-  const defaultTarget: number = (question?.defaultInput as any)?.target || 9;
+  const defaultNums: number[] = (question?.defaultInput as any)?.nums || [-2, 1, -3, 4, -1, 2, 1, -5, 4];
   
   const [nums, setNums] = useState<number[]>(defaultNums);
-  const [target, setTarget] = useState<number>(defaultTarget);
   const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customNums, setCustomNums] = useState('');
-  const [customTarget, setCustomTarget] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
-  // Update when question changes
   useEffect(() => {
     if (question?.defaultInput) {
       const input = question.defaultInput as any;
       if (input.nums && Array.isArray(input.nums)) {
         setNums(input.nums);
       }
-      if (input.target !== undefined && typeof input.target === 'number') {
-        setTarget(input.target);
-      }
     }
   }, [question]);
 
-  // Generate animation steps
-  const generateSteps = (nums: number[], target: number): TwoSumStep[] => {
-    const steps: TwoSumStep[] = [];
-    const map: Record<number, number> = {};
+  const generateSteps = (nums: number[]): MaximumSubarrayStep[] => {
+    const steps: MaximumSubarrayStep[] = [];
+    let currentSum = nums[0];
+    let maxSum = nums[0];
 
     // Initial state
     steps.push({
       line: 1,
-      variables: {},
-      hashMap: {},
-      description: 'Initialize empty hash map',
+      variables: { 'maxSum': maxSum, 'currentSum': currentSum },
+      description: `Initialize maxSum = ${maxSum} and currentSum = ${currentSum}`,
+      currentSum,
+      maxSum,
     });
 
-    for (let i = 0; i < nums.length; i++) {
-      const complement = target - nums[i];
-
+    for (let i = 1; i < nums.length; i++) {
       // Current iteration
       steps.push({
         line: 2,
         i,
-        variables: { i, 'nums[i]': nums[i] },
-        hashMap: { ...map },
-        description: `Check element at index ${i}: ${nums[i]}`,
+        variables: { i, 'nums[i]': nums[i], currentSum, maxSum },
+        description: `Processing element at index ${i}: ${nums[i]}`,
+        currentSum,
+        maxSum,
       });
 
-      // Calculate complement
+      // Update currentSum
+      const newCurrentSum = Math.max(nums[i], currentSum + nums[i]);
       steps.push({
         line: 3,
         i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Calculate complement: ${target} - ${nums[i]} = ${complement}`,
+        variables: { i, 'nums[i]': nums[i], currentSum, maxSum, 'newCurrentSum': newCurrentSum },
+        description: `Update currentSum = max(${nums[i]}, ${currentSum} + ${nums[i]}) = ${newCurrentSum}`,
+        currentSum: newCurrentSum,
+        maxSum,
       });
 
-      // Check if complement exists - PAUSE AT IF STATEMENT
+      currentSum = newCurrentSum;
+
+      // Update maxSum
+      const newMaxSum = Math.max(maxSum, currentSum);
       steps.push({
         line: 4,
         i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Checking if complement ${complement} exists in map...`,
+        variables: { i, 'nums[i]': nums[i], currentSum, maxSum, 'newMaxSum': newMaxSum },
+        description: `Update maxSum = max(${maxSum}, ${currentSum}) = ${newMaxSum}`,
+        currentSum,
+        maxSum: newMaxSum,
       });
 
-      // If complement found
-      if (map[complement] !== undefined) {
-        steps.push({
-          line: 4,
-          i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Condition: TRUE ✓\nComplement ${complement} found at index ${map[complement]}!\nSolution: nums[${map[complement]}] + nums[${i}] = ${target}`,
-          isSolution: true,
-          result: [map[complement], i],
-        });
-        // Return statement
-        steps.push({
-          line: 6,
-          i,
-          j: map[complement],
-          variables: { i, 'nums[i]': nums[i], complement },
-          hashMap: { ...map },
-          description: `Returning solution: [${map[complement]}, ${i}]`,
-          isSolution: true,
-          result: [map[complement], i],
-        });
-        break;
-      }
-
-      // If complement NOT found
-      steps.push({
-        line: 4,
-        i,
-        complement,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Condition: FALSE ✗\nComplement ${complement} not found in map.\nCurrent map: {${Object.entries(map).map(([k, v]) => `${k}: ${v}`).join(', ') || 'empty'}}\nContinue to add ${nums[i]} to map...`,
-      });
-
-      // Add to map
-      steps.push({
-        line: 5,
-        i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Add ${nums[i]} to map with index ${i}`,
-      });
-
-      map[nums[i]] = i;
-
-      // Updated map state
-      steps.push({
-        line: 5,
-        i,
-        variables: { i, 'nums[i]': nums[i], complement },
-        hashMap: { ...map },
-        description: `Map updated: {${Object.entries(map)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(', ')}}`,
-      });
+      maxSum = newMaxSum;
     }
+
+    // Final solution
+    steps.push({
+      line: 5,
+      variables: { maxSum },
+      description: `Maximum subarray sum: ${maxSum}`,
+      currentSum,
+      maxSum,
+      isSolution: true,
+      result: maxSum,
+    });
 
     return steps;
   };
 
-  const [steps, setSteps] = useState<TwoSumStep[]>(() => generateSteps(nums, target));
+  const [steps, setSteps] = useState<MaximumSubarrayStep[]>(() => generateSteps(nums));
 
   useEffect(() => {
-    setSteps(generateSteps(nums, target));
-  }, [nums, target]);
+    setSteps(generateSteps(nums));
+  }, [nums]);
 
   const {
     currentStep,
@@ -180,7 +130,7 @@ export const TwoSumVisualizationPage = () => {
 
   useEffect(() => {
     reset();
-  }, [nums, target, reset]);
+  }, [nums, reset]);
 
   const handleCustomInput = () => {
     try {
@@ -188,13 +138,10 @@ export const TwoSumVisualizationPage = () => {
         .split(',')
         .map((n) => parseInt(n.trim()))
         .filter((n) => !isNaN(n));
-      const targetNum = parseInt(customTarget);
-      if (numArray.length >= 2 && !isNaN(targetNum)) {
+      if (numArray.length >= 1) {
         setNums(numArray);
-        setTarget(targetNum);
         setShowCustomInput(false);
         setCustomNums('');
-        setCustomTarget('');
       }
     } catch (e) {
       console.error('Invalid input');
@@ -206,14 +153,7 @@ export const TwoSumVisualizationPage = () => {
       label: 'Array (comma-separated)',
       value: customNums,
       onChange: setCustomNums,
-      placeholder: '2, 7, 11, 15',
-    },
-    {
-      label: 'Target',
-      value: customTarget,
-      onChange: setCustomTarget,
-      placeholder: '9',
-      type: 'number',
+      placeholder: '-2, 1, -3, 4, -1, 2, 1, -5, 4',
     },
   ];
 
@@ -222,7 +162,6 @@ export const TwoSumVisualizationPage = () => {
     [currentStepData.line, language, questionId]
   );
 
-  // Safety check
   if (!steps || steps.length === 0 || !currentStepData) {
     return (
       <Box
@@ -240,13 +179,11 @@ export const TwoSumVisualizationPage = () => {
     );
   }
 
-  // Extract visualization content
   const visualizationContent = (
     <>
-      {/* Success Message - Fixed at top - Only show at return step */}
       {currentStepData.isSolution && 
-       currentStepData.result && 
-       currentStepData.line === 6 && (
+       currentStepData.result !== undefined && 
+       currentStepData.line === 5 && (
         <Box
           sx={{
             position: 'sticky',
@@ -261,12 +198,11 @@ export const TwoSumVisualizationPage = () => {
           <SolutionMessage
             result={currentStepData.result}
             timeComplexity="O(n)"
-            spaceComplexity="O(n)"
+            spaceComplexity="O(1)"
           />
         </Box>
       )}
 
-      {/* Array Visualization */}
       <Box
         sx={{
           display: 'flex',
@@ -313,24 +249,9 @@ export const TwoSumVisualizationPage = () => {
               overflowX: 'auto',
               overflowY: 'hidden',
               pb: 1,
-              '&::-webkit-scrollbar': {
-                height: '6px',
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: themeColors.inputBgDark,
-                borderRadius: '3px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: themeColors.borderLight,
-                borderRadius: '3px',
-                '&:hover': {
-                  backgroundColor: themeColors.primary,
-                },
-              },
             }}
           >
             {nums.map((num: number, idx: number) => {
-              // Dynamic sizing based on array length
               const arrayLength = nums.length;
               const isLargeArray = arrayLength > 15;
               const boxSize = isLargeArray ? 35 : 40;
@@ -338,118 +259,76 @@ export const TwoSumVisualizationPage = () => {
               const indexFontSize = isLargeArray ? '0.6rem' : '0.65rem';
               
               return (
-              <Box
-                key={idx}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
                 <Box
+                  key={idx}
                   sx={{
-                    width: boxSize,
-                    height: boxSize,
-                    minWidth: boxSize,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 1,
-                    border:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '2px solid #10b981'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `2px solid ${themeColors.primary}`
-                        : `1px solid ${themeColors.borderLight}`,
-                    backgroundColor:
-                      currentStepData.isSolution && (currentStepData.i === idx || currentStepData.j === idx)
-                        ? '#10b98133'
-                        : currentStepData.i === idx || currentStepData.j === idx
-                        ? `${themeColors.primary}1a`
-                        : 'transparent',
-                    transition: 'all 0.3s ease',
-                    flexShrink: 0,
                   }}
                 >
-                  <Typography
+                  <Box
                     sx={{
-                      fontSize: fontSize,
-                      fontWeight: 700,
-                      color: themeColors.white,
-                      wordBreak: 'break-word',
-                      textAlign: 'center',
-                      px: 0.25,
+                      width: boxSize,
+                      height: boxSize,
+                      minWidth: boxSize,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 1,
+                      border:
+                        currentStepData.i === idx
+                          ? `2px solid ${themeColors.primary}`
+                          : `1px solid ${themeColors.borderLight}`,
+                      backgroundColor:
+                        currentStepData.i === idx
+                          ? `${themeColors.primary}1a`
+                          : 'transparent',
+                      transition: 'all 0.3s ease',
+                      flexShrink: 0,
                     }}
                   >
-                    {num}
+                    <Typography
+                      sx={{
+                        fontSize: fontSize,
+                        fontWeight: 700,
+                        color: themeColors.white,
+                        wordBreak: 'break-word',
+                        textAlign: 'center',
+                        px: 0.25,
+                      }}
+                    >
+                      {num}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    sx={{
+                      mt: 0.25,
+                      fontSize: indexFontSize,
+                      color: themeColors.textSecondary,
+                    }}
+                  >
+                    {idx}
                   </Typography>
+                  {currentStepData.i === idx && (
+                    <Typography
+                      sx={{
+                        mt: 0.5,
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        color: themeColors.primary,
+                      }}
+                    >
+                      i
+                    </Typography>
+                  )}
                 </Box>
-                <Typography
-                  sx={{
-                    mt: 0.25,
-                    fontSize: indexFontSize,
-                    color: themeColors.textSecondary,
-                  }}
-                >
-                  {idx}
-                </Typography>
-                {currentStepData.i === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    i
-                  </Typography>
-                )}
-                {currentStepData.j === idx && (
-                  <Typography
-                    sx={{
-                      mt: 0.5,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: currentStepData.isSolution ? '#10b981' : themeColors.primary,
-                    }}
-                  >
-                    j
-                  </Typography>
-                )}
-              </Box>
-            );
+              );
             })}
           </Box>
         </Box>
-
-        {/* Target */}
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography
-            sx={{
-              fontSize: '0.75rem',
-              color: themeColors.textSecondary,
-            }}
-          >
-            Target ={' '}
-            <Box
-              component="code"
-              sx={{
-                backgroundColor: themeColors.inputBgDark,
-                px: 0.75,
-                py: 0.25,
-                borderRadius: 0.5,
-                fontSize: '0.65rem',
-                fontFamily: 'monospace',
-              }}
-            >
-              {target}
-            </Box>
-          </Typography>
-        </Box>
       </Box>
 
-      {/* Data Structures */}
       <Box
         sx={{
           flexShrink: 0,
@@ -458,7 +337,6 @@ export const TwoSumVisualizationPage = () => {
           p: 1.5,
         }}
       >
-        {/* Current Step Description */}
         <StepDescription
           description={currentStepData.description}
           isSolution={currentStepData.isSolution}
@@ -471,7 +349,6 @@ export const TwoSumVisualizationPage = () => {
             gap: 1.5,
           }}
         >
-          {/* Variables */}
           <Box>
             <Typography
               sx={{
@@ -546,7 +423,6 @@ export const TwoSumVisualizationPage = () => {
             </Box>
           </Box>
 
-          {/* Hash Map */}
           <Box>
             <Typography
               sx={{
@@ -556,7 +432,7 @@ export const TwoSumVisualizationPage = () => {
                 mb: 0.75,
               }}
             >
-              Hash Map
+              Current State
             </Typography>
             <Box
               sx={{
@@ -570,13 +446,14 @@ export const TwoSumVisualizationPage = () => {
                 overflow: 'auto',
               }}
             >
-              <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
-                {Object.keys(currentStepData.hashMap).length > 0
-                  ? `{${Object.entries(currentStepData.hashMap)
-                      .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}}`
-                  : '{}'}
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
+                  currentSum: {currentStepData.currentSum ?? 'N/A'}
+                </Typography>
+                <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
+                  maxSum: {currentStepData.maxSum ?? 'N/A'}
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -584,7 +461,6 @@ export const TwoSumVisualizationPage = () => {
     </>
   );
 
-  // Extract explanation content
   const explanationContent = question?.explanation ? (
     <Box
       sx={{
@@ -593,7 +469,6 @@ export const TwoSumVisualizationPage = () => {
         p: 4,
       }}
     >
-      {/* Approach */}
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{
@@ -605,7 +480,7 @@ export const TwoSumVisualizationPage = () => {
         >
           Approach
         </Typography>
-        <Paper
+        <Box
           sx={{
             backgroundColor: themeColors.inputBgDark,
             p: 3,
@@ -621,10 +496,9 @@ export const TwoSumVisualizationPage = () => {
           >
             {question.explanation.approach}
           </Typography>
-        </Paper>
+        </Box>
       </Box>
 
-      {/* Step-by-Step Solution */}
       <Box sx={{ mb: 4 }}>
         <Typography
           sx={{
@@ -638,7 +512,7 @@ export const TwoSumVisualizationPage = () => {
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {question.explanation.steps.map((step, index) => (
-            <Paper
+            <Box
               key={index}
               sx={{
                 backgroundColor: themeColors.inputBgDark,
@@ -680,12 +554,11 @@ export const TwoSumVisualizationPage = () => {
               >
                 {step}
               </Typography>
-            </Paper>
+            </Box>
           ))}
         </Box>
       </Box>
 
-      {/* Complexity Analysis */}
       <Box>
         <Typography
           sx={{
@@ -698,7 +571,7 @@ export const TwoSumVisualizationPage = () => {
           Complexity Analysis
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Paper
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -725,8 +598,8 @@ export const TwoSumVisualizationPage = () => {
             >
               {question.explanation.timeComplexity}
             </Typography>
-          </Paper>
-          <Paper
+          </Box>
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -753,31 +626,12 @@ export const TwoSumVisualizationPage = () => {
             >
               {question.explanation.spaceComplexity}
             </Typography>
-          </Paper>
+          </Box>
         </Box>
       </Box>
     </Box>
-  ) : (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '50vh',
-      }}
-    >
-      <Typography
-        sx={{
-          fontSize: '1rem',
-          color: themeColors.textSecondary,
-        }}
-      >
-        Explanation not available for this problem.
-      </Typography>
-    </Box>
-  );
+  ) : null;
 
-  // Code content
   const codeContent = (
     <CodeViewer
       questionId={questionId}
@@ -803,7 +657,7 @@ export const TwoSumVisualizationPage = () => {
   return (
     <>
       <VisualizationLayout
-        title="2 Sum"
+        title="Maximum Subarray"
         questionId={questionId}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -821,4 +675,5 @@ export const TwoSumVisualizationPage = () => {
   );
 };
 
-export default TwoSumVisualizationPage;
+export default MaximumSubarrayVisualizationPage;
+

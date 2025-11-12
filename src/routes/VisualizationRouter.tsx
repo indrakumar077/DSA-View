@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { QUESTION_IDS, ROUTES } from '../constants';
-import { TwoSumVisualizationPage } from '../features/questions/visualizations/TwoSum/TwoSumVisualizationPage';
+import { TwoSumVisualizationPage } from '../features/questions/visualizations/Array/TwoSum/TwoSumVisualizationPage';
 
 /**
  * Dynamic router for visualization pages

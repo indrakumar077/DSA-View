@@ -651,6 +651,21 @@ export const QuestionListPage = () => {
                 >
                   <TableCell
                     sx={{
+                      width: '60px',
+                      padding: '12px 16px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: themeColors.textSecondary,
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    #
+                  </TableCell>
+                  <TableCell
+                    sx={{
                       width: '64px',
                       padding: '12px 16px',
                       fontSize: '0.75rem',
@@ -665,7 +680,7 @@ export const QuestionListPage = () => {
                   </TableCell>
                   <TableCell
                     sx={{
-                      width: '30%',
+                      width: '28%',
                       padding: '12px 16px',
                       fontSize: '0.75rem',
                       fontWeight: 600,
@@ -707,7 +722,7 @@ export const QuestionListPage = () => {
                   </TableCell>
                   <TableCell
                     sx={{
-                      width: '30%',
+                      width: '28%',
                       padding: '12px 16px',
                       fontSize: '0.75rem',
                       fontWeight: 600,
@@ -722,7 +737,7 @@ export const QuestionListPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {questions.map((question) => {
+                {questions.map((question, index) => {
                   const difficultyColors = getDifficultyColor(question.difficulty);
                   return (
                     <TableRow
@@ -740,6 +755,18 @@ export const QuestionListPage = () => {
                         },
                       }}
                     >
+                      <TableCell
+                        sx={{
+                          padding: '8px 16px',
+                          textAlign: 'center',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                          fontSize: '0.875rem',
+                          color: themeColors.textSecondary,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {index + 1}
+                      </TableCell>
                       <TableCell
                         sx={{
                           padding: '8px 16px',

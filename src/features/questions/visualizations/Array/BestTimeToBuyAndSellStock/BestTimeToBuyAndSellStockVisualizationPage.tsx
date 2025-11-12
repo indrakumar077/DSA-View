@@ -1,306 +1,210 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
-import { themeColors } from '../../../../theme';
-import { useVisualizationState } from '../../../../core/hooks/useVisualizationState';
-import { useQuestionData } from '../../../../core/hooks/useQuestionData';
-import { getHighlightedLine } from '../../../../core/utils/codeHighlighting';
-import { VisualizationLayout } from '../../../../shared/layouts/VisualizationLayout';
-import { CodeViewer } from '../../../../shared/components/CodeViewer';
-import { VisualizationControlBar } from '../../../../shared/components/VisualizationControlBar';
-import { CustomInputDialog } from '../../../../shared/components/CustomInputDialog';
-import { StepDescription, SolutionMessage } from '../../../../shared/components/VisualizationComponents';
-import { VisualizationStep, Language } from '../../../../types';
-import { DEFAULT_LANGUAGE } from '../../../../constants';
+import { Box, Typography } from '@mui/material';
+import { themeColors } from '../../../../../theme';
+import { useVisualizationState } from '../../../../../core/hooks/useVisualizationState';
+import { useQuestionData } from '../../../../../core/hooks/useQuestionData';
+import { getHighlightedLine } from '../../../../../core/utils/codeHighlighting';
+import { VisualizationLayout } from '../../../../../shared/layouts/VisualizationLayout';
+import { CodeViewer } from '../../../../../shared/components/CodeViewer';
+import { VisualizationControlBar } from '../../../../../shared/components/VisualizationControlBar';
+import { CustomInputDialog } from '../../../../../shared/components/CustomInputDialog';
+import { StepDescription, SolutionMessage } from '../../../../../shared/components/VisualizationComponents';
+import { VisualizationStep, Language } from '../../../../../types';
+import { DEFAULT_LANGUAGE } from '../../../../../constants';
 
-interface TrappingRainWaterStep extends VisualizationStep {
-  left?: number;
-  right?: number;
-  maxLeft?: number;
-  maxRight?: number;
-  water?: number[];
-  totalWater?: number;
+interface StockStep extends VisualizationStep {
+  i?: number;
+  minPrice?: number;
+  buyDay?: number; // Day index where we would buy (minPrice day)
+  profit?: number;
+  maxProfit?: number;
   isSolution?: boolean;
   result?: number;
 }
 
-export const TrappingRainWaterVisualizationPage = () => {
+export const BestTimeToBuyAndSellStockVisualizationPage = () => {
   const question = useQuestionData();
-  const questionId = question?.id || 42;
+  const questionId = question?.id || 121;
   
   // Get default input from question data
-  const defaultHeight: number[] = (question?.defaultInput as any)?.height || [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1];
+  const defaultPrices: number[] = (question?.defaultInput as any)?.prices || [7, 1, 5, 3, 6, 4];
   
-  const [height, setHeight] = useState<number[]>(defaultHeight);
+  const [prices, setPrices] = useState<number[]>(defaultPrices);
   const [language, setLanguage] = useState<Language>(DEFAULT_LANGUAGE);
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customHeight, setCustomHeight] = useState('');
+  const [customPrices, setCustomPrices] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
   // Update when question changes
   useEffect(() => {
     if (question?.defaultInput) {
       const input = question.defaultInput as any;
-      if (input.height && Array.isArray(input.height)) {
-        setHeight(input.height);
+      if (input.prices && Array.isArray(input.prices)) {
+        setPrices(input.prices);
       }
     }
   }, [question]);
 
-  // Generate animation steps using two-pointer approach
-  const generateSteps = (height: number[]): TrappingRainWaterStep[] => {
-    const steps: TrappingRainWaterStep[] = [];
-    
-    if (height.length === 0) {
-      steps.push({
-        line: 1,
-        variables: {},
-        water: [],
-        totalWater: 0,
-        description: 'Empty array, return 0',
-        result: 0,
-        isSolution: true,
-      });
-      return steps;
-    }
+  // Generate animation steps
+  const generateSteps = (prices: number[]): StockStep[] => {
+    const steps: StockStep[] = [];
+    let minPrice = Infinity;
+    let maxProfit = 0;
+    let buyDay = -1; // Track the day index where we would buy
 
-    let left = 0;
-    let right = height.length - 1;
-    let maxLeft = 0;
-    let maxRight = 0;
-    let totalWater = 0;
-    const water: number[] = new Array(height.length).fill(0);
-
-    // Initial state - Step 1: Check if empty (line 1), Steps 2-4: Initialize (lines 2-4)
+    // Initial state
     steps.push({
-      line: 2,
+      line: 1,
       variables: {},
-      left: 0,
-      right: height.length - 1,
-      maxLeft: 0,
-      maxRight: 0,
-      water: [...water],
-      totalWater: 0,
-      description: `Initialize: left = 0, right = ${height.length - 1}, maxLeft = 0, maxRight = 0, totalWater = 0`,
+      description: 'Initialize minPrice to infinity and maxProfit to 0',
+      minPrice: Infinity,
+      maxProfit: 0,
+      buyDay: -1,
     });
 
-    while (left < right) {
-      // Step 5: Main loop condition
+    for (let i = 0; i < prices.length; i++) {
+      // Current iteration
       steps.push({
-        line: 5,
-        left,
-        right,
-        maxLeft,
-        maxRight,
-        water: [...water],
-        totalWater,
-        variables: {
-          left,
-          right,
-          'height[left]': height[left],
-          'height[right]': height[right],
-          maxLeft,
-          maxRight,
-        },
-        description: `Loop: left=${left} < right=${right}\nComparing heights at left=${left} (${height[left]}) and right=${right} (${height[right]})`,
+        line: 3,
+        i,
+        minPrice,
+        maxProfit,
+        buyDay,
+        variables: { i, 'prices[i]': prices[i] },
+        description: `Day ${i}: Price = ${prices[i]}`,
       });
 
-      // Step 6: Compare heights
-      if (height[left] < height[right]) {
-        // Process left side
-        steps.push({
-          line: 6,
-          left,
-          right,
-          maxLeft,
-          maxRight,
-          water: [...water],
-          totalWater,
-          variables: {
-            left,
-            right,
-            'height[left]': height[left],
-            'height[right]': height[right],
-            maxLeft,
-            maxRight,
-          },
-          description: `height[left] (${height[left]}) < height[right] (${height[right]})\nProcessing left side...`,
-        });
+      // Check if current price is less than minPrice
+      steps.push({
+        line: 4,
+        i,
+        minPrice,
+        maxProfit,
+        buyDay,
+        variables: { i, 'prices[i]': prices[i] },
+        description: `Checking if prices[${i}] (${prices[i]}) < minPrice (${minPrice === Infinity ? 'infinity' : minPrice})...`,
+      });
 
-        // Step 7: Check maxLeft
-        if (height[left] >= maxLeft) {
-          steps.push({
-            line: 7,
-            left,
-            right,
-            maxLeft,
-            maxRight,
-            water: [...water],
-            totalWater,
-            variables: {
-              left,
-              right,
-              'height[left]': height[left],
-              maxLeft,
-            },
-            description: `height[left] (${height[left]}) >= maxLeft (${maxLeft})\nUpdate maxLeft to ${height[left]}`,
-          });
-          maxLeft = height[left];
-        } else {
-          // Step 9: Calculate trapped water on left
-          const trapped = maxLeft - height[left];
-          water[left] = trapped;
-          totalWater += trapped;
-          
-          steps.push({
-            line: 9,
-            left,
-            right,
-            maxLeft,
-            maxRight,
-            water: [...water],
-            totalWater,
-            variables: {
-              left,
-              right,
-              'height[left]': height[left],
-              maxLeft,
-              trapped,
-            },
-            description: `height[left] (${height[left]}) < maxLeft (${maxLeft})\nTrapped water at index ${left} = ${maxLeft} - ${height[left]} = ${trapped}\nTotal water: ${totalWater}`,
-          });
-        }
-
-        // Step 10: Move left pointer
+      // If current price is less than minPrice
+      if (prices[i] < minPrice) {
         steps.push({
-          line: 10,
-          left: left + 1,
-          right,
-          maxLeft,
-          maxRight,
-          water: [...water],
-          totalWater,
-          variables: {
-            left: left + 1,
-            right,
-            maxLeft,
-            maxRight,
-          },
-          description: `Move left pointer: left = ${left + 1}`,
+          line: 4,
+          i,
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `Condition: TRUE ✓\nprices[${i}] (${prices[i]}) < minPrice (${minPrice === Infinity ? 'infinity' : minPrice})\nUpdate minPrice to ${prices[i]} (Buy on Day ${i})`,
         });
-        left++;
+        
+        minPrice = prices[i];
+        buyDay = i;
+        
+        steps.push({
+          line: 5,
+          i,
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `minPrice updated to ${minPrice} (Best buy day: Day ${buyDay})`,
+        });
       } else {
-        // Process right side
         steps.push({
-          line: 6,
-          left,
-          right,
-          maxLeft,
-          maxRight,
-          water: [...water],
-          totalWater,
-          variables: {
-            left,
-            right,
-            'height[left]': height[left],
-            'height[right]': height[right],
-            maxLeft,
-            maxRight,
-          },
-          description: `height[left] (${height[left]}) >= height[right] (${height[right]})\nProcessing right side...`,
+          line: 4,
+          i,
+          minPrice,
+          maxProfit,
+          buyDay,
+          variables: { i, 'prices[i]': prices[i] },
+          description: `Condition: FALSE ✗\nprices[${i}] (${prices[i]}) >= minPrice (${minPrice})\nKeep minPrice as ${minPrice} (Buy on Day ${buyDay})`,
         });
+      }
 
-        // Step 11: Check maxRight
-        if (height[right] >= maxRight) {
-          steps.push({
-            line: 11,
-            left,
-            right,
-            maxLeft,
-            maxRight,
-            water: [...water],
-            totalWater,
-            variables: {
-              left,
-              right,
-              'height[right]': height[right],
-              maxRight,
-            },
-            description: `height[right] (${height[right]}) >= maxRight (${maxRight})\nUpdate maxRight to ${height[right]}`,
-          });
-          maxRight = height[right];
-        } else {
-          // Step 13: Calculate trapped water on right
-          const trapped = maxRight - height[right];
-          water[right] = trapped;
-          totalWater += trapped;
-          
-          steps.push({
-            line: 13,
-            left,
-            right,
-            maxLeft,
-            maxRight,
-            water: [...water],
-            totalWater,
-            variables: {
-              left,
-              right,
-              'height[right]': height[right],
-              maxRight,
-              trapped,
-            },
-            description: `height[right] (${height[right]}) < maxRight (${maxRight})\nTrapped water at index ${right} = ${maxRight} - ${height[right]} = ${trapped}\nTotal water: ${totalWater}`,
-          });
-        }
+      // Calculate profit
+      const profit = prices[i] - minPrice;
+      steps.push({
+        line: 6,
+        i,
+        minPrice,
+        buyDay,
+        profit,
+        maxProfit,
+        variables: { i, 'prices[i]': prices[i], profit },
+        description: `Calculate profit: prices[${i}] - minPrice = ${prices[i]} - ${minPrice} = ${profit}`,
+      });
 
-        // Step 14: Move right pointer
+      // Check if profit is greater than maxProfit
+      steps.push({
+        line: 7,
+        i,
+        minPrice,
+        buyDay,
+        profit,
+        maxProfit,
+        variables: { i, 'prices[i]': prices[i], profit },
+        description: `Checking if profit (${profit}) > maxProfit (${maxProfit})...`,
+      });
+
+      // If profit is greater than maxProfit
+      if (profit > maxProfit) {
         steps.push({
-          line: 14,
-          left,
-          right: right - 1,
-          maxLeft,
-          maxRight,
-          water: [...water],
-          totalWater,
-          variables: {
-            left,
-            right: right - 1,
-            maxLeft,
-            maxRight,
-          },
-          description: `Move right pointer: right = ${right - 1}`,
+          line: 7,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `Condition: TRUE ✓\nprofit (${profit}) > maxProfit (${maxProfit})\nUpdate maxProfit to ${profit}\nBest strategy: Buy on Day ${buyDay} (price ${minPrice}), Sell on Day ${i} (price ${prices[i]})`,
         });
-        right--;
+        
+        maxProfit = profit;
+        
+        steps.push({
+          line: 8,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `maxProfit updated to ${maxProfit}`,
+        });
+      } else {
+        steps.push({
+          line: 7,
+          i,
+          minPrice,
+          buyDay,
+          profit,
+          maxProfit,
+          variables: { i, 'prices[i]': prices[i], profit },
+          description: `Condition: FALSE ✗\nprofit (${profit}) <= maxProfit (${maxProfit})\nKeep maxProfit as ${maxProfit}`,
+        });
       }
     }
 
-    // Step 15: Final solution
+    // Final result
     steps.push({
-      line: 15,
-      left,
-      right,
-      maxLeft,
-      maxRight,
-      water: [...water],
-      totalWater,
-      variables: {
-        left,
-        right,
-        totalWater,
-      },
-      description: `Loop complete: left (${left}) >= right (${right})\nTotal trapped rainwater: ${totalWater}`,
+      line: 9,
+      minPrice,
+      buyDay,
+      maxProfit,
+      variables: { maxProfit },
+      description: `Return maxProfit: ${maxProfit}`,
       isSolution: true,
-      result: totalWater,
+      result: maxProfit,
     });
 
     return steps;
   };
 
-  const [steps, setSteps] = useState<TrappingRainWaterStep[]>(() => generateSteps(height));
+  const [steps, setSteps] = useState<StockStep[]>(() => generateSteps(prices));
 
   useEffect(() => {
-    setSteps(generateSteps(height));
-  }, [height]);
+    setSteps(generateSteps(prices));
+  }, [prices]);
 
   const {
     currentStep,
@@ -319,18 +223,18 @@ export const TrappingRainWaterVisualizationPage = () => {
 
   useEffect(() => {
     reset();
-  }, [height, reset]);
+  }, [prices, reset]);
 
   const handleCustomInput = () => {
     try {
-      const heightArray = customHeight
+      const priceArray = customPrices
         .split(',')
-        .map((h) => parseInt(h.trim()))
-        .filter((h) => !isNaN(h) && h >= 0);
-      if (heightArray.length >= 1) {
-        setHeight(heightArray);
+        .map((p) => parseInt(p.trim()))
+        .filter((p) => !isNaN(p) && p >= 0);
+      if (priceArray.length >= 1) {
+        setPrices(priceArray);
         setShowCustomInput(false);
-        setCustomHeight('');
+        setCustomPrices('');
       }
     } catch (e) {
       console.error('Invalid input');
@@ -339,10 +243,10 @@ export const TrappingRainWaterVisualizationPage = () => {
 
   const customInputFields = [
     {
-      label: 'Height Array (comma-separated)',
-      value: customHeight,
-      onChange: setCustomHeight,
-      placeholder: '0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1',
+      label: 'Prices (comma-separated)',
+      value: customPrices,
+      onChange: setCustomPrices,
+      placeholder: '7, 1, 5, 3, 6, 4',
     },
   ];
 
@@ -369,17 +273,13 @@ export const TrappingRainWaterVisualizationPage = () => {
     );
   }
 
-  // Calculate max height for visualization scaling
-  const maxHeight = Math.max(...height, 1);
-  const water = currentStepData.water || [];
-
   // Extract visualization content
   const visualizationContent = (
     <>
       {/* Success Message - Fixed at top - Only show at final step */}
       {currentStepData.isSolution && 
        currentStepData.result !== undefined && 
-       currentStepData.line === 15 && (
+       currentStepData.line === 9 && (
         <Box
           sx={{
             position: 'sticky',
@@ -399,7 +299,7 @@ export const TrappingRainWaterVisualizationPage = () => {
         </Box>
       )}
 
-      {/* Rain Water Visualization */}
+      {/* Prices Array Visualization */}
       <Box
         sx={{
           display: 'flex',
@@ -422,7 +322,7 @@ export const TrappingRainWaterVisualizationPage = () => {
               textAlign: 'center',
             }}
           >
-            Elevation Map{' '}
+            Stock Prices{' '}
             <Box
               component="code"
               sx={{
@@ -434,9 +334,8 @@ export const TrappingRainWaterVisualizationPage = () => {
                 fontFamily: 'monospace',
               }}
             >
-              height
+              prices
             </Box>
-            {' '}and Trapped Water
           </Typography>
           
           {/* Bar Chart Container */}
@@ -446,7 +345,7 @@ export const TrappingRainWaterVisualizationPage = () => {
               alignItems: 'flex-end',
               justifyContent: 'flex-start',
               gap: { xs: 0.5, sm: 1 },
-              height: 250,
+              height: 180,
               position: 'relative',
               borderBottom: `2px solid ${themeColors.borderLight}`,
               borderLeft: `2px solid ${themeColors.borderLight}`,
@@ -471,21 +370,26 @@ export const TrappingRainWaterVisualizationPage = () => {
               },
             }}
           >
-            {height.map((h: number, idx: number) => {
-              const isLeftPointer = currentStepData.left === idx;
-              const isRightPointer = currentStepData.right === idx;
-              const trappedWater = water[idx] || 0;
+            {prices.map((price: number, idx: number) => {
+              const maxPrice = Math.max(...prices);
+              const minPrice = Math.min(...prices);
+              const priceRange = maxPrice - minPrice || 1;
+              // Clamp bar height to max 160px, min 20px (reduced from 180 to fit better)
+              const barHeight = Math.min(Math.max(((price - minPrice) / priceRange) * 140 + 20, 20), 160);
+              const isCurrentDay = currentStepData.i === idx;
+              const isSolutionDay = currentStepData.isSolution && currentStepData.i === idx;
               
-              // Calculate heights for visualization
-              const barHeight = (h / maxHeight) * 180;
-              const waterHeight = (trappedWater / maxHeight) * 180;
-              
+              // Check if this is the buy day or sell day
+              const buyDayIndex = currentStepData.buyDay !== undefined ? currentStepData.buyDay : -1;
+              const isBuyDay = buyDayIndex === idx && currentStepData.minPrice === price;
+              const isSellDay = isSolutionDay && currentStepData.profit !== undefined && currentStepData.profit > 0 && buyDayIndex >= 0;
+
               // Dynamic sizing based on array length
-              const arrayLength = height.length;
+              const arrayLength = prices.length;
               const isLargeArray = arrayLength > 20;
               const barWidth = isLargeArray ? 35 : arrayLength > 15 ? 40 : 45;
-              const fontSize = isLargeArray ? '0.6rem' : '0.65rem';
-              const indexFontSize = isLargeArray ? '0.55rem' : '0.6rem';
+              const priceFontSize = isLargeArray ? '0.6rem' : '0.65rem';
+              const dayFontSize = isLargeArray ? '0.6rem' : '0.65rem';
 
               return (
                 <Box
@@ -495,113 +399,112 @@ export const TrappingRainWaterVisualizationPage = () => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     position: 'relative',
+                    minWidth: barWidth,
+                    maxWidth: barWidth,
+                    flexShrink: 0,
                   }}
                 >
-                  {/* Water layer (on top) */}
-                  {trappedWater > 0 && (
-                    <Box
-                      sx={{
-                        width: barWidth,
-                        height: waterHeight,
-                        backgroundColor: '#3b82f6',
-                        opacity: 0.7,
-                        border: '1px solid #2563eb',
-                        borderRadius: '2px 2px 0 0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'absolute',
-                        bottom: barHeight,
-                        zIndex: 2,
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
-                      {waterHeight > 15 && (
-                        <Typography
-                          sx={{
-                            fontSize: fontSize,
-                            fontWeight: 600,
-                            color: themeColors.white,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {trappedWater}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
+                  {/* Price label above bar */}
+                  <Typography
+                    sx={{
+                      fontSize: priceFontSize,
+                      fontWeight: 700,
+                      color: isCurrentDay || isBuyDay || isSellDay
+                        ? themeColors.primary
+                        : themeColors.textSecondary,
+                      mb: 0.25,
+                      textAlign: 'center',
+                      wordBreak: 'break-word',
+                      maxWidth: '100%',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {price}
+                  </Typography>
                   
-                  {/* Elevation bar */}
+                  {/* Bar */}
                   <Box
                     sx={{
-                      width: barWidth,
-                      height: barHeight,
-                      minHeight: h > 0 ? 10 : 2,
-                      backgroundColor:
-                        isLeftPointer || isRightPointer
-                          ? themeColors.primary
-                          : themeColors.borderLight,
-                      border:
-                        isLeftPointer || isRightPointer
-                          ? `2px solid ${themeColors.primary}`
-                          : `1px solid ${themeColors.borderLight}`,
-                      borderRadius: '2px 2px 0 0',
+                      width: '100%',
+                      height: `${barHeight}px`,
+                      minHeight: '20px',
+                      backgroundColor: isSellDay
+                        ? '#10b981'
+                        : isBuyDay
+                        ? '#f59e0b'
+                        : isCurrentDay
+                        ? themeColors.primary
+                        : themeColors.borderLight,
+                      borderRadius: '4px 4px 0 0',
+                      border: isCurrentDay || isBuyDay || isSellDay
+                        ? `2px solid ${isSellDay ? '#10b981' : isBuyDay ? '#f59e0b' : themeColors.primary}`
+                        : 'none',
+                      borderBottom: 'none',
+                      transition: 'all 0.3s ease',
+                      position: 'relative',
                       display: 'flex',
                       alignItems: 'flex-end',
                       justifyContent: 'center',
-                      position: 'relative',
-                      transition: 'all 0.3s ease',
-                      zIndex: 1,
+                      pb: 0,
+                      boxShadow: isCurrentDay || isBuyDay || isSellDay
+                        ? `0 0 12px ${isSellDay ? '#10b98166' : isBuyDay ? '#f59e0b66' : themeColors.primary + '66'}`
+                        : 'none',
                     }}
-                  >
-                    {barHeight > 20 && (
-                      <Typography
-                        sx={{
-                          fontSize: fontSize,
-                          fontWeight: 700,
-                          color: themeColors.white,
-                          mb: 0.5,
-                        }}
-                      >
-                        {h}
-                      </Typography>
-                    )}
-                  </Box>
+                  />
                   
-                  {/* Index label */}
+                  {/* Day label */}
                   <Typography
                     sx={{
                       mt: 0.5,
-                      fontSize: indexFontSize,
-                      color: themeColors.textSecondary,
+                      fontSize: dayFontSize,
+                      color: isCurrentDay || isBuyDay || isSellDay
+                        ? themeColors.primary
+                        : themeColors.textSecondary,
+                      fontWeight: isCurrentDay || isBuyDay || isSellDay ? 700 : 400,
+                      lineHeight: 1.2,
                     }}
                   >
-                    {idx}
+                    Day {idx}
                   </Typography>
                   
-                  {/* Pointer labels */}
-                  {isLeftPointer && (
+                  {/* Indicators */}
+                  {isBuyDay && (
                     <Typography
                       sx={{
                         mt: 0.25,
-                        fontSize: '0.65rem',
+                        fontSize: '0.55rem',
+                        color: '#f59e0b',
                         fontWeight: 700,
-                        color: themeColors.primary,
+                        lineHeight: 1.2,
                       }}
                     >
-                      left
+                      BUY
                     </Typography>
                   )}
-                  {isRightPointer && (
+                  {isSellDay && (
                     <Typography
                       sx={{
                         mt: 0.25,
-                        fontSize: '0.65rem',
+                        fontSize: '0.55rem',
+                        color: '#10b981',
                         fontWeight: 700,
-                        color: themeColors.primary,
+                        lineHeight: 1.2,
                       }}
                     >
-                      right
+                      SELL
+                    </Typography>
+                  )}
+                  {isCurrentDay && !isBuyDay && !isSellDay && (
+                    <Typography
+                      sx={{
+                        mt: 0.25,
+                        fontSize: '0.55rem',
+                        color: themeColors.primary,
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      i
                     </Typography>
                   )}
                 </Box>
@@ -609,32 +512,9 @@ export const TrappingRainWaterVisualizationPage = () => {
             })}
           </Box>
         </Box>
-
-        {/* Total Water Display */}
-        <Box sx={{ textAlign: 'center', mt: 1 }}>
-          <Typography
-            sx={{
-              fontSize: '0.875rem',
-              color: themeColors.textSecondary,
-              mb: 0.5,
-            }}
-          >
-            Total Trapped Water:
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: themeColors.primary,
-              fontFamily: 'monospace',
-            }}
-          >
-            {currentStepData.totalWater !== undefined ? currentStepData.totalWater : 0}
-          </Typography>
-        </Box>
       </Box>
 
-      {/* Data Structures */}
+      {/* Variables and Info */}
       <Box
         sx={{
           flexShrink: 0,
@@ -732,7 +612,7 @@ export const TrappingRainWaterVisualizationPage = () => {
             </Box>
           </Box>
 
-          {/* Water Array */}
+          {/* Tracking Values */}
           <Box>
             <Typography
               sx={{
@@ -742,7 +622,7 @@ export const TrappingRainWaterVisualizationPage = () => {
                 mb: 0.75,
               }}
             >
-              Trapped Water Array
+              Tracking
             </Typography>
             <Box
               sx={{
@@ -756,11 +636,88 @@ export const TrappingRainWaterVisualizationPage = () => {
                 overflow: 'auto',
               }}
             >
-              <Typography sx={{ color: themeColors.white, fontSize: '0.7rem' }}>
-                {water.length > 0
-                  ? `[${water.map((w, i) => (w > 0 ? `${i}:${w}` : '0')).join(', ')}]`
-                  : '[]'}
-              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    backgroundColor: `${themeColors.primary}1a`,
+                    padding: '3px 8px',
+                    borderRadius: 0.75,
+                    border: `1px solid ${themeColors.primary}33`,
+                  }}
+                >
+                  <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                    minPrice:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: themeColors.white,
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {currentStepData.minPrice === Infinity ? '∞' : currentStepData.minPrice}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    backgroundColor: `${themeColors.primary}1a`,
+                    padding: '3px 8px',
+                    borderRadius: 0.75,
+                    border: `1px solid ${themeColors.primary}33`,
+                  }}
+                >
+                  <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                    maxProfit:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: currentStepData.isSolution ? '#10b981' : themeColors.white,
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {currentStepData.maxProfit ?? 0}
+                  </Typography>
+                </Box>
+                {currentStepData.profit !== undefined && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      backgroundColor: `${themeColors.primary}1a`,
+                      padding: '3px 8px',
+                      borderRadius: 0.75,
+                      border: `1px solid ${themeColors.primary}33`,
+                    }}
+                  >
+                    <Typography sx={{ color: themeColors.textSecondary, fontSize: '0.7rem' }}>
+                      profit:
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: themeColors.white,
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {currentStepData.profit}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -789,7 +746,7 @@ export const TrappingRainWaterVisualizationPage = () => {
         >
           Approach
         </Typography>
-        <Paper
+        <Box
           sx={{
             backgroundColor: themeColors.inputBgDark,
             p: 3,
@@ -805,7 +762,7 @@ export const TrappingRainWaterVisualizationPage = () => {
           >
             {question.explanation.approach}
           </Typography>
-        </Paper>
+        </Box>
       </Box>
 
       {/* Step-by-Step Solution */}
@@ -821,8 +778,8 @@ export const TrappingRainWaterVisualizationPage = () => {
           Step-by-Step Solution
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {question.explanation.steps.map((step, index) => (
-            <Paper
+          {question.explanation.steps.map((step: string, index: number) => (
+            <Box
               key={index}
               sx={{
                 backgroundColor: themeColors.inputBgDark,
@@ -864,7 +821,7 @@ export const TrappingRainWaterVisualizationPage = () => {
               >
                 {step}
               </Typography>
-            </Paper>
+            </Box>
           ))}
         </Box>
       </Box>
@@ -882,7 +839,7 @@ export const TrappingRainWaterVisualizationPage = () => {
           Complexity Analysis
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Paper
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -909,8 +866,8 @@ export const TrappingRainWaterVisualizationPage = () => {
             >
               {question.explanation.timeComplexity}
             </Typography>
-          </Paper>
-          <Paper
+          </Box>
+          <Box
             sx={{
               flex: 1,
               backgroundColor: themeColors.inputBgDark,
@@ -937,7 +894,7 @@ export const TrappingRainWaterVisualizationPage = () => {
             >
               {question.explanation.spaceComplexity}
             </Typography>
-          </Paper>
+          </Box>
         </Box>
       </Box>
     </Box>
@@ -961,7 +918,6 @@ export const TrappingRainWaterVisualizationPage = () => {
     </Box>
   );
 
-  // Code content
   const codeContent = (
     <CodeViewer
       questionId={questionId}
@@ -971,12 +927,10 @@ export const TrappingRainWaterVisualizationPage = () => {
       controls={
         <VisualizationControlBar
           isPlaying={isPlaying}
-          speed={speed}
-          currentStep={currentStep}
-          totalSteps={steps.length}
           onPlayPause={handlePlayPause}
           onPrevious={handlePrevious}
           onNext={handleNext}
+          speed={speed}
           onSpeedChange={setSpeed}
           onCustomInput={() => setShowCustomInput(true)}
         />
@@ -987,7 +941,7 @@ export const TrappingRainWaterVisualizationPage = () => {
   return (
     <>
       <VisualizationLayout
-        title="Trapping Rain Water"
+        title={question?.title || 'Best Time to Buy and Sell Stock'}
         questionId={questionId}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -1000,10 +954,9 @@ export const TrappingRainWaterVisualizationPage = () => {
         onClose={() => setShowCustomInput(false)}
         onSubmit={handleCustomInput}
         fields={customInputFields}
+        title="Custom Input"
       />
     </>
   );
 };
-
-export default TrappingRainWaterVisualizationPage;
 

@@ -6,12 +6,26 @@ To add a new question visualization, follow these steps:
 
 ### 1. Create Visualization Page
 
-Create a new folder in `src/features/questions/visualizations/` with your question name:
+Create a new folder in the appropriate topic folder within `src/features/questions/visualizations/`. Questions are organized by topic (similar to Striver's DSA sheet):
 
 ```
-YourQuestion/
-  └── YourQuestionVisualizationPage.tsx
+visualizations/
+  ├── Array/
+  │   ├── TwoSum/
+  │   │   └── TwoSumVisualizationPage.tsx
+  │   ├── BestTimeToBuyAndSellStock/
+  │   │   └── BestTimeToBuyAndSellStockVisualizationPage.tsx
+  │   └── YourQuestion/
+  │       └── YourQuestionVisualizationPage.tsx
+  ├── Stack/
+  ├── Linked List/
+  └── ...
 ```
+
+**Topic-based organization:**
+- Questions are grouped by their primary topic/category
+- Common topics: Array, Stack, Linked List, Binary Tree, Dynamic Programming, etc.
+- If a question belongs to multiple topics, place it in the primary topic folder
 
 ### 2. Use Reusable Components
 
@@ -168,7 +182,7 @@ export const YourQuestionVisualizationPage = () => {
 Add your visualization to `src/routes/VisualizationRouter.tsx`:
 
 ```typescript
-import { YourQuestionVisualizationPage } from '../features/questions/visualizations/YourQuestion/YourQuestionVisualizationPage';
+import { YourQuestionVisualizationPage } from '../features/questions/visualizations/Array/YourQuestion/YourQuestionVisualizationPage';
 
 export const VisualizationRouter = () => {
   const { id } = useParams<{ id: string }>();

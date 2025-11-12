@@ -69,12 +69,14 @@ export const VisualizationLayout = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button
             startIcon={<ArrowBack />}
-            onClick={() => {
+            onClick={(e) => {
+              e?.preventDefault();
+              e?.stopPropagation();
               const questionSlug = slug || question?.slug;
               if (questionSlug) {
-                navigate(ROUTES.PROBLEM_DESCRIPTION(questionSlug));
+                navigate(ROUTES.PROBLEM_DESCRIPTION(questionSlug), { replace: true });
               } else {
-                navigate(ROUTES.QUESTIONS);
+                navigate(ROUTES.QUESTIONS, { replace: true });
               }
             }}
             sx={{
@@ -99,8 +101,10 @@ export const VisualizationLayout = ({
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button
-            onClick={() => {
-              navigate(`${ROUTES.QUESTIONS}?focusSearch=true`);
+            onClick={(e) => {
+              e?.preventDefault();
+              e?.stopPropagation();
+              navigate(`${ROUTES.QUESTIONS}?focusSearch=true`, { replace: true });
             }}
             sx={{
               display: { xs: 'none', md: 'flex' },
@@ -156,7 +160,17 @@ export const VisualizationLayout = ({
             />
           </Button>
           <Button
-            onClick={() => navigate(ROUTES.QUESTIONS)}
+            onClick={(e) => {
+              e?.preventDefault();
+              e?.stopPropagation();
+              // Navigate to questions page
+              if (location.pathname !== ROUTES.QUESTIONS) {
+                navigate(ROUTES.QUESTIONS, { replace: true });
+              } else {
+                // If already on questions page, force reload
+                window.location.href = ROUTES.QUESTIONS;
+              }
+            }}
             sx={{
               color: themeColors.primary,
               textTransform: 'none',

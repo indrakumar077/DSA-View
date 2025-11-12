@@ -18,9 +18,7 @@ import { Header } from '../../../shared/ui';
 import { ResizableSplitPane } from '../../../shared/components/ResizableSplitPane';
 import { QuestionData, Language } from '../../../types';
 import { VisualizationControlProvider, useVisualizationControls } from '../../../core/contexts/VisualizationControlContext';
-import { TwoSumVisualizationPage } from '../visualizations/TwoSum/TwoSumVisualizationPage';
-import { BestTimeToBuyAndSellStockVisualizationPage } from '../visualizations/BestTimeToBuyAndSellStock/BestTimeToBuyAndSellStockVisualizationPage';
-import { TrappingRainWaterVisualizationPage } from '../visualizations/TrappingRainWater/TrappingRainWaterVisualizationPage';
+import { getVisualizationComponent } from '../visualizations/visualizationRegistry';
 import { ROUTES } from '../../../constants';
 
 interface GenericQuestionPageProps {
@@ -47,18 +45,7 @@ const GenericQuestionPageContent = ({ question }: GenericQuestionPageProps) => {
   }, [location.pathname]);
 
   // Get visualization component based on question ID (LeetCode number)
-  const getVisualizationComponent = () => {
-    switch (question.id) { // question.id === question.leetcodeNumber
-      case 1: // LeetCode #1
-        return <TwoSumVisualizationPage />;
-      case 121: // LeetCode #121
-        return <BestTimeToBuyAndSellStockVisualizationPage />;
-      case 42: // LeetCode #42
-        return <TrappingRainWaterVisualizationPage />;
-      default:
-        return null;
-    }
-  };
+  const VisualizationComponent = getVisualizationComponent(question.id);
 
 
   return (
@@ -75,7 +62,17 @@ const GenericQuestionPageContent = ({ question }: GenericQuestionPageProps) => {
           {
             label: 'Dashboard',
             isActive: false,
-            onClick: () => navigate(ROUTES.QUESTIONS),
+            onClick: (e) => {
+              e?.preventDefault();
+              e?.stopPropagation();
+              // Navigate to questions page
+              if (location.pathname !== ROUTES.QUESTIONS) {
+                navigate(ROUTES.QUESTIONS, { replace: true });
+              } else {
+                // If already on questions page, force reload
+                window.location.href = ROUTES.QUESTIONS;
+              }
+            },
           },
         ]}
       />
@@ -109,15 +106,24 @@ const GenericQuestionPageContent = ({ question }: GenericQuestionPageProps) => {
                 <Tabs
                   value={activeTab}
                   onChange={(_e, newValue) => {
-                    setActiveTab(newValue);
                     const questionSlug = slug || question.slug;
-                    if (newValue === 0) {
-                      navigate(ROUTES.PROBLEM_DESCRIPTION(questionSlug));
-                    } else if (newValue === 1) {
-                      navigate(ROUTES.PROBLEM_VISUALIZATION(questionSlug));
-                    } else if (newValue === 2) {
-                      navigate(ROUTES.PROBLEM_EXPLANATION(questionSlug));
+                    const targetPath = 
+                      newValue === 0 ? ROUTES.PROBLEM_DESCRIPTION(questionSlug) :
+                      newValue === 1 ? ROUTES.PROBLEM_VISUALIZATION(questionSlug) :
+                      ROUTES.PROBLEM_EXPLANATION(questionSlug);
+                    
+                    // Always navigate to ensure URL and state are in sync
+                    if (location.pathname !== targetPath) {
+                      navigate(targetPath, { replace: true });
+                    } else {
+                      // Force navigation even if on same route by using a temporary query param
+                      navigate(targetPath + '?t=' + Date.now(), { replace: true });
+                      // Immediately clean up the query param
+                      setTimeout(() => {
+                        navigate(targetPath, { replace: true });
+                      }, 10);
                     }
+                    setActiveTab(newValue);
                   }}
                   sx={{
                     minHeight: 48,
@@ -428,7 +434,7 @@ const GenericQuestionPageContent = ({ question }: GenericQuestionPageProps) => {
                       },
                     }}
                   >
-                    {getVisualizationComponent()}
+                    {VisualizationComponent ? <VisualizationComponent /> : null}
                   </Box>
                 )}
 

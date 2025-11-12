@@ -83,6 +83,8 @@ export enum Tag {
   MEMOIZATION = 'Memoization',
   STRING_MATCHING = 'String Matching',
   SIMULATION = 'Simulation',
+  PREFIX_SUM = 'Prefix Sum',
+  DIVIDE_AND_CONQUER = 'Divide and Conquer',
 }
 
 // Array of all enum values for easy iteration

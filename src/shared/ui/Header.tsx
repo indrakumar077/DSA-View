@@ -19,7 +19,7 @@ interface HeaderProps {
   navigationItems?: Array<{
     label: string;
     isActive?: boolean;
-    onClick?: () => void;
+    onClick?: (e?: React.MouseEvent) => void;
   }>;
 }
 
@@ -37,7 +37,7 @@ export const Header = ({
     if (!isOnQuestionsPage) {
       e?.preventDefault();
       e?.stopPropagation();
-      navigate(`${ROUTES.QUESTIONS}?focusSearch=true`);
+      navigate(`${ROUTES.QUESTIONS}?focusSearch=true`, { replace: true });
     }
   };
 
