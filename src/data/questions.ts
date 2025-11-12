@@ -1326,4 +1326,508 @@ export const questionsData: Record<number, QuestionData> = {
       },
     },
   },
+  75: {
+    id: 75,
+    slug: "sort-colors",
+    title: "Sort Colors",
+    description:
+      "Given an array nums with n objects colored red, white, or blue, sort them in-place so that objects of the same color are adjacent, with the colors in the order red, white, and blue.\n\nWe will use the integers 0, 1, and 2 to represent the color red, white, and blue, respectively.\n\nYou must solve this problem without using the library's sort function.",
+    examples: [
+      {
+        input: "nums = [2,0,2,1,1,0]",
+        output: "[0,0,1,1,2,2]",
+        explanation: "Sort the array so that all 0s come first, then 1s, then 2s.",
+      },
+      {
+        input: "nums = [2,0,1]",
+        output: "[0,1,2]",
+      },
+    ],
+    constraints: [
+      "n == nums.length",
+      "1 ≤ n ≤ 300",
+      "nums[i] is either 0, 1, or 2.",
+    ],
+    codes: {
+      [Language.PYTHON]: `def sortColors(nums):
+    # Dutch National Flag algorithm
+    left = 0
+    mid = 0
+    right = len(nums) - 1
+    
+    while mid <= right:
+        if nums[mid] == 0:
+            nums[left], nums[mid] = nums[mid], nums[left]
+            left += 1
+            mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:  # nums[mid] == 2
+            nums[mid], nums[right] = nums[right], nums[mid]
+            right -= 1`,
+      [Language.JAVA]: `public void sortColors(int[] nums) {
+    int left = 0;
+    int mid = 0;
+    int right = nums.length - 1;
+    
+    while (mid <= right) {
+        if (nums[mid] == 0) {
+            int temp = nums[left];
+            nums[left] = nums[mid];
+            nums[mid] = temp;
+            left++;
+            mid++;
+        } else if (nums[mid] == 1) {
+            mid++;
+        } else {  // nums[mid] == 2
+            int temp = nums[mid];
+            nums[mid] = nums[right];
+            nums[right] = temp;
+            right--;
+        }
+    }
+}`,
+      [Language.CPP]: `void sortColors(vector<int>& nums) {
+    int left = 0;
+    int mid = 0;
+    int right = nums.size() - 1;
+    
+    while (mid <= right) {
+        if (nums[mid] == 0) {
+            swap(nums[left], nums[mid]);
+            left++;
+            mid++;
+        } else if (nums[mid] == 1) {
+            mid++;
+        } else {  // nums[mid] == 2
+            swap(nums[mid], nums[right]);
+            right--;
+        }
+    }
+}`,
+      [Language.JAVASCRIPT]: `function sortColors(nums) {
+    let left = 0;
+    let mid = 0;
+    let right = nums.length - 1;
+    
+    while (mid <= right) {
+        if (nums[mid] === 0) {
+            [nums[left], nums[mid]] = [nums[mid], nums[left]];
+            left++;
+            mid++;
+        } else if (nums[mid] === 1) {
+            mid++;
+        } else {  // nums[mid] === 2
+            [nums[mid], nums[right]] = [nums[right], nums[mid]];
+            right--;
+        }
+    }
+}`,
+    },
+    explanation: {
+      approach:
+        "Use the Dutch National Flag algorithm with three pointers: left (for 0s), mid (current element), and right (for 2s). Process elements from left to right, swapping 0s to the left and 2s to the right, while leaving 1s in place.",
+      steps: [
+        "Initialize three pointers: left=0, mid=0, right=n-1.",
+        "While mid <= right, check the element at mid:",
+        "  - If nums[mid] == 0: swap with nums[left], increment both left and mid.",
+        "  - If nums[mid] == 1: increment mid (leave it in place).",
+        "  - If nums[mid] == 2: swap with nums[right], decrement right (don't increment mid).",
+        "Continue until mid > right.",
+      ],
+      timeComplexity: "O(n)",
+      spaceComplexity: "O(1)",
+    },
+    tags: [Tag.ARRAY, Tag.TWO_POINTERS, Tag.SORTING],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 75,
+    hasVisualization: true,
+    defaultInput: {
+      nums: [2, 0, 2, 1, 1, 0],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 3, // left = 0
+        2: 4, // mid = 0
+        3: 5, // right = len(nums) - 1
+        4: 7, // while mid <= right:
+        5: 8, // if nums[mid] == 0:
+        6: 9, // nums[left], nums[mid] = nums[mid], nums[left]
+        7: 10, // left += 1; mid += 1
+        8: 11, // elif nums[mid] == 1:
+        9: 12, // mid += 1
+        10: 13, // else: swap with right
+        11: 14, // right -= 1
+      },
+      [Language.JAVA]: {
+        1: 2, // int left = 0;
+        2: 3, // int mid = 0;
+        3: 4, // int right = nums.length - 1;
+        4: 6, // while (mid <= right)
+        5: 7, // if (nums[mid] == 0)
+        6: 9, // swap
+        7: 12, // left++; mid++;
+        8: 13, // else if (nums[mid] == 1)
+        9: 14, // mid++;
+        10: 15, // else swap with right
+        11: 19, // right--;
+      },
+      [Language.CPP]: {
+        1: 2, // int left = 0;
+        2: 3, // int mid = 0;
+        3: 4, // int right = nums.size() - 1;
+        4: 6, // while (mid <= right)
+        5: 7, // if (nums[mid] == 0)
+        6: 8, // swap
+        7: 10, // left++; mid++;
+        8: 11, // else if (nums[mid] == 1)
+        9: 12, // mid++;
+        10: 13, // else swap with right
+        11: 15, // right--;
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // let left = 0;
+        2: 3, // let mid = 0;
+        3: 4, // let right = nums.length - 1;
+        4: 6, // while (mid <= right)
+        5: 7, // if (nums[mid] === 0)
+        6: 8, // swap
+        7: 10, // left++; mid++;
+        8: 11, // else if (nums[mid] === 1)
+        9: 12, // mid++;
+        10: 13, // else swap with right
+        11: 15, // right--;
+      },
+    },
+  },
+  56: {
+    id: 56,
+    slug: "merge-intervals",
+    title: "Merge Intervals",
+    description:
+      "Given an array of intervals where intervals[i] = [starti, endi], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.",
+    examples: [
+      {
+        input: "intervals = [[1,3],[2,6],[8,10],[15,18]]",
+        output: "[[1,6],[8,10],[15,18]]",
+        explanation: "Since intervals [1,3] and [2,6] overlap, merge them into [1,6].",
+      },
+      {
+        input: "intervals = [[1,4],[4,5]]",
+        output: "[[1,5]]",
+        explanation: "Intervals [1,4] and [4,5] are considered overlapping.",
+      },
+    ],
+    constraints: [
+      "1 ≤ intervals.length ≤ 10⁴",
+      "intervals[i].length == 2",
+      "0 ≤ starti ≤ endi ≤ 10⁴",
+    ],
+    codes: {
+      [Language.PYTHON]: `def merge(intervals):
+    if not intervals:
+        return []
+    
+    # Sort intervals by start time
+    intervals.sort(key=lambda x: x[0])
+    merged = [intervals[0]]
+    
+    for current in intervals[1:]:
+        last = merged[-1]
+        # If current interval overlaps with last merged interval
+        if current[0] <= last[1]:
+            # Merge: update end time to max of both
+            last[1] = max(last[1], current[1])
+        else:
+            # No overlap, add as new interval
+            merged.append(current)
+    
+    return merged`,
+      [Language.JAVA]: `public int[][] merge(int[][] intervals) {
+    if (intervals.length == 0) {
+        return new int[0][];
+    }
+    
+    // Sort intervals by start time
+    Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+    List<int[]> merged = new ArrayList<>();
+    merged.add(intervals[0]);
+    
+    for (int i = 1; i < intervals.length; i++) {
+        int[] current = intervals[i];
+        int[] last = merged.get(merged.size() - 1);
+        
+        // If current interval overlaps with last merged interval
+        if (current[0] <= last[1]) {
+            // Merge: update end time to max of both
+            last[1] = Math.max(last[1], current[1]);
+        } else {
+            // No overlap, add as new interval
+            merged.add(current);
+        }
+    }
+    
+    return merged.toArray(new int[merged.size()][]);
+}`,
+      [Language.CPP]: `vector<vector<int>> merge(vector<vector<int>>& intervals) {
+    if (intervals.empty()) {
+        return {};
+    }
+    
+    // Sort intervals by start time
+    sort(intervals.begin(), intervals.end());
+    vector<vector<int>> merged;
+    merged.push_back(intervals[0]);
+    
+    for (int i = 1; i < intervals.size(); i++) {
+        vector<int>& current = intervals[i];
+        vector<int>& last = merged.back();
+        
+        // If current interval overlaps with last merged interval
+        if (current[0] <= last[1]) {
+            // Merge: update end time to max of both
+            last[1] = max(last[1], current[1]);
+        } else {
+            // No overlap, add as new interval
+            merged.push_back(current);
+        }
+    }
+    
+    return merged;
+}`,
+      [Language.JAVASCRIPT]: `function merge(intervals) {
+    if (intervals.length === 0) {
+        return [];
+    }
+    
+    // Sort intervals by start time
+    intervals.sort((a, b) => a[0] - b[0]);
+    const merged = [intervals[0]];
+    
+    for (let i = 1; i < intervals.length; i++) {
+        const current = intervals[i];
+        const last = merged[merged.length - 1];
+        
+        // If current interval overlaps with last merged interval
+        if (current[0] <= last[1]) {
+            // Merge: update end time to max of both
+            last[1] = Math.max(last[1], current[1]);
+        } else {
+            // No overlap, add as new interval
+            merged.push(current);
+        }
+    }
+    
+    return merged;
+}`,
+    },
+    explanation: {
+      approach:
+        "Sort intervals by start time, then iterate through them. If the current interval overlaps with the last merged interval (current start <= last end), merge them by updating the end time. Otherwise, add it as a new interval.",
+      steps: [
+        "Sort all intervals by their start time.",
+        "Initialize merged list with the first interval.",
+        "For each subsequent interval:",
+        "  - If it overlaps with the last merged interval (current[0] <= last[1]), merge by updating last[1] = max(last[1], current[1]).",
+        "  - Otherwise, add it as a new interval to merged list.",
+        "Return the merged list.",
+      ],
+      timeComplexity: "O(n log n)",
+      spaceComplexity: "O(n)",
+    },
+    tags: [Tag.ARRAY, Tag.SORTING],
+    difficulty: Difficulty.MEDIUM,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 56,
+    hasVisualization: true,
+    defaultInput: {
+      intervals: [[1, 3], [2, 6], [8, 10], [15, 18]],
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 3, // if not intervals: return []
+        2: 6, // intervals.sort(key=lambda x: x[0])
+        3: 7, // merged = [intervals[0]]
+        4: 9, // for current in intervals[1:]:
+        5: 10, // last = merged[-1]
+        6: 12, // if current[0] <= last[1]:
+        7: 13, // last[1] = max(last[1], current[1])
+        8: 14, // else:
+        9: 15, // merged.append(current)
+        10: 17, // return merged
+      },
+      [Language.JAVA]: {
+        1: 2, // if (intervals.length == 0)
+        2: 6, // Arrays.sort(intervals, ...)
+        3: 7, // merged.add(intervals[0])
+        4: 9, // for (int i = 1; i < intervals.length; i++)
+        5: 12, // if (current[0] <= last[1])
+        6: 13, // last[1] = Math.max(...)
+        7: 15, // else merged.add(current)
+        8: 19, // return merged.toArray(...)
+      },
+      [Language.CPP]: {
+        1: 2, // if (intervals.empty())
+        2: 6, // sort(intervals.begin(), intervals.end())
+        3: 7, // merged.push_back(intervals[0])
+        4: 9, // for (int i = 1; i < intervals.size(); i++)
+        5: 12, // if (current[0] <= last[1])
+        6: 13, // last[1] = max(...)
+        7: 15, // else merged.push_back(current)
+        8: 19, // return merged
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // if (intervals.length === 0)
+        2: 6, // intervals.sort(...)
+        3: 7, // merged = [intervals[0]]
+        4: 9, // for (let i = 1; i < intervals.length; i++)
+        5: 12, // if (current[0] <= last[1])
+        6: 13, // last[1] = Math.max(...)
+        7: 15, // else merged.push(current)
+        8: 19, // return merged
+      },
+    },
+  },
+  118: {
+    id: 118,
+    slug: "pascals-triangle",
+    title: "Pascal's Triangle",
+    description:
+      "Given an integer numRows, return the first numRows of Pascal's triangle.\n\nIn Pascal's triangle, each number is the sum of the two numbers directly above it as shown:\n\n    1\n   1 1\n  1 2 1\n 1 3 3 1\n1 4 6 4 1",
+    examples: [
+      {
+        input: "numRows = 5",
+        output: "[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]",
+        explanation: "Each row is built from the previous row by adding adjacent elements.",
+      },
+      {
+        input: "numRows = 1",
+        output: "[[1]]",
+      },
+    ],
+    constraints: [
+      "1 ≤ numRows ≤ 30",
+    ],
+    codes: {
+      [Language.PYTHON]: `def generate(numRows):
+    triangle = []
+    
+    for i in range(numRows):
+        row = [1] * (i + 1)
+        # Fill middle elements (skip first and last)
+        for j in range(1, i):
+            row[j] = triangle[i-1][j-1] + triangle[i-1][j]
+        triangle.append(row)
+    
+    return triangle`,
+      [Language.JAVA]: `public List<List<Integer>> generate(int numRows) {
+    List<List<Integer>> triangle = new ArrayList<>();
+    
+    for (int i = 0; i < numRows; i++) {
+        List<Integer> row = new ArrayList<>();
+        for (int j = 0; j <= i; j++) {
+            if (j == 0 || j == i) {
+                row.add(1);
+            } else {
+                row.add(triangle.get(i-1).get(j-1) + triangle.get(i-1).get(j));
+            }
+        }
+        triangle.add(row);
+    }
+    
+    return triangle;
+}`,
+      [Language.CPP]: `vector<vector<int>> generate(int numRows) {
+    vector<vector<int>> triangle;
+    
+    for (int i = 0; i < numRows; i++) {
+        vector<int> row(i + 1, 1);
+        // Fill middle elements (skip first and last)
+        for (int j = 1; j < i; j++) {
+            row[j] = triangle[i-1][j-1] + triangle[i-1][j];
+        }
+        triangle.push_back(row);
+    }
+    
+    return triangle;
+}`,
+      [Language.JAVASCRIPT]: `function generate(numRows) {
+    const triangle = [];
+    
+    for (let i = 0; i < numRows; i++) {
+        const row = new Array(i + 1).fill(1);
+        // Fill middle elements (skip first and last)
+        for (let j = 1; j < i; j++) {
+            row[j] = triangle[i-1][j-1] + triangle[i-1][j];
+        }
+        triangle.push(row);
+    }
+    
+    return triangle;
+}`,
+    },
+    explanation: {
+      approach:
+        "Build each row from the previous row. The first and last elements are always 1. Middle elements are the sum of the two elements directly above them from the previous row.",
+      steps: [
+        "Initialize an empty triangle list.",
+        "For each row i from 0 to numRows-1:",
+        "  - Create a row of size (i+1) filled with 1s.",
+        "  - For middle elements (j from 1 to i-1), set row[j] = triangle[i-1][j-1] + triangle[i-1][j].",
+        "  - Add the row to the triangle.",
+        "Return the triangle.",
+      ],
+      timeComplexity: "O(numRows²)",
+      spaceComplexity: "O(numRows²)",
+    },
+    tags: [Tag.ARRAY, Tag.DYNAMIC_PROGRAMMING],
+    difficulty: Difficulty.EASY,
+    topic: Topic.ARRAYS,
+    leetcodeNumber: 118,
+    hasVisualization: true,
+    defaultInput: {
+      numRows: 5,
+    },
+    lineMappings: {
+      [Language.PYTHON]: {
+        1: 2, // triangle = []
+        2: 4, // for i in range(numRows):
+        3: 5, // row = [1] * (i + 1)
+        4: 7, // for j in range(1, i):
+        5: 8, // row[j] = triangle[i-1][j-1] + triangle[i-1][j]
+        6: 9, // triangle.append(row)
+        7: 11, // return triangle
+      },
+      [Language.JAVA]: {
+        1: 2, // List<List<Integer>> triangle = new ArrayList<>();
+        2: 4, // for (int i = 0; i < numRows; i++)
+        3: 6, // for (int j = 0; j <= i; j++)
+        4: 7, // if (j == 0 || j == i)
+        5: 8, // row.add(1)
+        6: 9, // else
+        7: 10, // row.add(triangle.get(i-1).get(j-1) + triangle.get(i-1).get(j))
+        8: 13, // triangle.add(row)
+        9: 16, // return triangle
+      },
+      [Language.CPP]: {
+        1: 2, // vector<vector<int>> triangle;
+        2: 4, // for (int i = 0; i < numRows; i++)
+        3: 5, // vector<int> row(i + 1, 1);
+        4: 7, // for (int j = 1; j < i; j++)
+        5: 8, // row[j] = triangle[i-1][j-1] + triangle[i-1][j]
+        6: 10, // triangle.push_back(row)
+        7: 13, // return triangle
+      },
+      [Language.JAVASCRIPT]: {
+        1: 2, // const triangle = [];
+        2: 4, // for (let i = 0; i < numRows; i++)
+        3: 5, // const row = new Array(i + 1).fill(1);
+        4: 7, // for (let j = 1; j < i; j++)
+        5: 8, // row[j] = triangle[i-1][j-1] + triangle[i-1][j]
+        6: 10, // triangle.push(row)
+        7: 13, // return triangle
+      },
+    },
+  },
 };
